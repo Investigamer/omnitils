@@ -1,5 +1,8 @@
 """
-* Utils: Files
+* Data File Utilities
+* Generalized utilities for working with data files, i.e. JSON, YAML, etc.
+* Copyright (c) Hexproof Systems <hexproofsystems@gmail.com>
+* LICENSE: Mozilla Public License 2.0
 """
 # Standard Library Imports
 import json
