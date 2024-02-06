@@ -29,6 +29,15 @@ mypy = "^1.8.0"
 pytest = "^8.0.0"
 memory-profiler = "^0.61.0"
 
+[tool.commitizen]
+version = "0.1.0"
+changelog_start_rev = "0.1.0"
+tag_format = "$major.$minor.$patch"
+update_changelog_on_bump = true
+version_files = [
+    "pyproject.toml:version"
+]
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
