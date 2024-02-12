@@ -6,12 +6,49 @@
 """
 # Standard Library Imports
 import hashlib
+import os
 from pathlib import Path
+from typing import Union
+
+"""
+* File Naming
+"""
+
+
+def get_unique_filename(path: Path, increment_template: str = '({})') -> Path:
+    """If a filepath exists, number the file according to the lowest number that doesn't exist.
+
+    Args:
+        path: Path to the file.
+        increment_template: String that contains the numeric increment which is increased to arrive at
+            a unique filename. Defaults to (i).
+
+    Returns:
+        A unique file path.
+    """
+    stem, i = path.stem, 1
+    while path.is_file():
+        path = path.with_stem(f'{stem} {increment_template.format(i)}')
+        i += 1
+    return path
 
 
 """
 * File Information
 """
+
+
+def get_file_size_mb(file_path: Union[str, os.PathLike], decimal: int = 1) -> float:
+    """Get a file's size in megabytes rounded.
+
+    Args:
+        file_path: Path to the file.
+        decimal: Number of decimal places to allow when rounding.
+
+    Returns:
+        Float representing the filesize in megabytes rounded to decimal length provided.
+    """
+    return round(os.path.getsize(file_path) / (1024 * 1024), decimal)
 
 
 def get_sha256(path: Path, chunk_size: int = 4096) -> str:
