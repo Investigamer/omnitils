@@ -1,3 +1,13 @@
+## 0.3.0 (2024-02-13)
+
+### Feat
+
+- **dicts**: Add dicts util module for generalized utilities working with dicts
+
+### Refactor
+
+- **strings**: Added new util funcs for string bool comparisons and working with multiline strings
+
 ## 0.2.0 (2024-02-12)
 
 ### Feat
