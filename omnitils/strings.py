@@ -6,14 +6,66 @@
 """
 # Standard Library Imports
 import string
-from typing import Optional
+from typing import Optional, Union
 
 import unicodedata
 from datetime import datetime
 from dateutil import parser
 
+# Maps strings to boolean values
+STR_BOOL_MAP = {
+    '1': True,
+    'y': True,
+    't': True,
+    'on': True,
+    'yes': True,
+    'true': True,
+    '0': False,
+    'n': False,
+    'f': False,
+    'no': False,
+    'off': False,
+    'false': False
+}
+
 """
-* String Util Funcs
+* String Comparisons
+"""
+
+
+def str_to_bool(text: str) -> bool:
+    """Converts a truthy string value to a bool. Conversion is case-insensitive.
+
+    Args:
+        text: String to check for boolean value.
+
+    Notes:
+        - Values are not case-sensitive.
+        - True values are 1, t, y, on, yes, and true.
+        - False values are 0, f, n, no, off, and true.
+
+    Returns:
+        Equivalent boolean value.
+
+    Raises:
+        ValueError: If string provided isn't a recognized truthy expression.
+    """
+    try:
+        return STR_BOOL_MAP[text.lower()]
+    except KeyError:
+        raise ValueError(f"Unrecognized boolean value '{text}'!")
+
+
+def str_to_bool_safe(text: str, default: bool = False) -> bool:
+    """QOL definition for `str_to_bool`, returns default if exception is raised."""
+    try:
+        return STR_BOOL_MAP[text.lower()]
+    except KeyError:
+        return default
+
+
+"""
+* String Conversions
 """
 
 
@@ -89,3 +141,82 @@ def normalize_datestr(
     except ValueError as e:
         print(e)
         return datetime.today().strftime(date_fmt)
+
+
+"""
+* Multiline Utils
+"""
+
+
+def is_multiline(text: Union[str, list[str]]) -> Union[bool, list[bool]]:
+    """Check if text or list of texts given contains multiline text (a newline character).
+
+    Args:
+        text: String to check or list of strings to check.
+
+    Returns:
+        True/False or list of True/False values.
+    """
+    # String Given
+    if isinstance(text, str):
+        if '\n' in text or '\r' in text:
+            return True
+        return False
+    # List Given
+    if isinstance(text, list):
+        return [bool('\n' in t or '\r' in t) for t in text]
+    # Invalid data type provided
+    raise Exception("Invalid type passed to 'is_multiline', can only accept a string or list of strings.\n"
+                    f"Value received: {text}")
+
+
+def strip_lines(text: str, num: int, sep: str = '\n') -> str:
+    """Removes a number of leading or trailing lines from a multiline string.
+
+    Args:
+        text: Multiline string.
+        num: Positive integer for number leading lines, negative integer for number of trailing lines.
+        sep: Separator used to split lines, defaults to '\n'.
+
+    Returns:
+        String with lines stripped.
+    """
+    if num == 0:
+        return text
+    if num < 0:
+        return '\n'.join(text.split(sep)[:num])
+    return '\n'.join(text.split(sep)[num:])
+
+
+def get_line(text: str, i: int, sep: str = '\n') -> str:
+    """Get line by index from a multiline string.
+
+    Args:
+        text: Multiline string.
+        i: Index of the line.
+        sep: Separator used to split lines, defaults to '\n'.
+
+    Returns:
+        Isolated line.
+    """
+    if abs(i) > text.count('\n'):
+        raise IndexError(f"Not enough lines in multiline string. Index of {i} is invalid.")
+    return text.split(sep)[i]
+
+
+def get_lines(text: str, num: int, sep: str = '\n') -> str:
+    """Separate a number of lines from a multiline string.
+
+    Args:
+        text: Multiline string.
+        num: Number of lines to separate and return, negative integer for trailing lines.
+        sep: Newline separator to use for split, defaults to '\n'.
+
+    Returns:
+        Isolated lines.
+    """
+    if num == 0 or abs(num) > text.count('\n') + 1:
+        return text
+    if num < 0:
+        return '\n'.join(text.split(sep)[num:])
+    return '\n'.join(text.split(sep)[:num])
