@@ -1,3 +1,9 @@
+## 0.3.2 (2024-02-14)
+
+### Refactor
+
+- **files**: New util func "ensure_file"
+
 ## 0.3.1 (2024-02-14)
 
 ### Refactor
