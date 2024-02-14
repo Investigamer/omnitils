@@ -1,3 +1,9 @@
+## 0.3.1 (2024-02-14)
+
+### Refactor
+
+- **files_data,folders**: Add new utils "get_project_version" and "get_subdirs"
+
 ## 0.3.0 (2024-02-13)
 
 ### Feat
