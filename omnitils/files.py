@@ -8,7 +8,27 @@
 import hashlib
 import os
 from pathlib import Path
-from typing import Union
+from typing import Union, Any
+
+"""
+* Generating Files
+"""
+
+
+def ensure_file(path: Path, encoding: str = 'utf-8', boilerplate: str = '') -> None:
+    """If a file doesn't exist, create an empty file there.
+
+    Args:
+        path: Path to the file.
+        encoding: Encoding to use when opening the new file.
+        boilerplate: Data to write to the new file.
+    """
+    if path.is_file():
+        return
+    with open(path, encoding=encoding) as f:
+        f.write(boilerplate)
+    return
+
 
 """
 * File Naming
