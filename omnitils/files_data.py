@@ -180,3 +180,21 @@ def dump_data_file(
         parser['dump'](obj, f, **parser['dump_kw'])
         return
     raise OSError(f"Unable to dump data from data file:\n{str(path)}")
+
+
+"""
+* Project Files
+"""
+
+
+def get_project_version(path: Path) -> str:
+    """Returns the version string stored in the root project file.
+
+    Args:
+        path: Path to the root project file.
+
+    Returns:
+        Current version string.
+    """
+    project = load_data_file(path)
+    return project.get('tool', {}).get('poetry', {}).get('version', '1.0.0')

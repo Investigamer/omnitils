@@ -7,6 +7,7 @@
 # Standard Library Imports
 import os
 from pathlib import Path
+from typing import Iterator
 
 """
 * Folder Information
@@ -28,3 +29,21 @@ def mkdir_full_perms(path: Path) -> Path:
     path.mkdir(mode=0o755, parents=True, exist_ok=True)
     return path
 
+
+"""
+* Directory Listing
+"""
+
+
+def get_subdirs(path: Path) -> Iterator[Path]:
+    """Yields each subdirectory of a given folder.
+
+    Args:
+        path: Path to the folder to iterate over.
+
+    Yields:
+        A subdirectory of the given folder.
+    """
+    for dir_path, dir_names, filenames in os.walk(path):
+        for dirname in dir_names:
+            yield Path(dir_path) / dirname
