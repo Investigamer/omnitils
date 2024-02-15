@@ -1,3 +1,9 @@
+## 0.4.0 (2024-02-14)
+
+### Feat
+
+- **schema**: New util module "schema" for creating and validating schemas
+
 ## 0.3.2 (2024-02-14)
 
 ### Refactor
