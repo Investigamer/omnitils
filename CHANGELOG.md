@@ -1,3 +1,9 @@
+## 0.6.0 (2024-02-18)
+
+### Feat
+
+- **download**: Add new util module "download" for handling file download requests
+
 ## 0.5.0 (2024-02-18)
 
 ### Feat

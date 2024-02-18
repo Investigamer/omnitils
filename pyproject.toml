@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "omnitils"
-version = "0.5.0"
+version = "0.6.0"
 description = "Universal reusable Python utils for the modern human."
 authors = ["Investigamer <freethoughtleft@gmail.com>"]
 license = "MPL-2.0"
@@ -30,7 +30,7 @@ pytest = "^8.0.0"
 memory-profiler = "^0.61.0"
 
 [tool.commitizen]
-version = "0.5.0"
+version = "0.6.0"
 tag_format = "$major.$minor.$patch"
 update_changelog_on_bump = true
 version_files = [
