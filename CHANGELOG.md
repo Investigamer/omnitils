@@ -1,3 +1,9 @@
+## 0.5.0 (2024-02-18)
+
+### Feat
+
+- **exceptions**: New util module 'exceptions.py' for dealing with exceptions
+
 ## 0.4.0 (2024-02-14)
 
 ### Feat
