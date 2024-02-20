@@ -27,7 +27,7 @@ def invert_map(d: dict[Hashable, Hashable]) -> dict[Hashable, Hashable]:
     return inverted
 
 
-def invert_map_multi(d: dict[Hashable, Hashable]) -> dict[Hashable, Hashable]:
+def invert_map_multi(d: dict[Hashable, Hashable]) -> dict[Hashable, list[Hashable]]:
     """Flips the key, val in a dictionary to val, [keys], preserving cases where the same
     value is mapped to multiple keys.
 
