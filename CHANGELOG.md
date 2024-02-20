@@ -1,3 +1,9 @@
+## 0.6.1 (2024-02-20)
+
+### Fix
+
+- **invert_map_multi**: Fix return type
+
 ## 0.6.0 (2024-02-18)
 
 ### Feat
