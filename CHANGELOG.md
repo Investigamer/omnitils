@@ -1,3 +1,9 @@
+## 0.6.2 (2024-03-01)
+
+### Fix
+
+- **files**: New file must be opened in write mode
+
 ## 0.6.1 (2024-02-20)
 
 ### Fix
