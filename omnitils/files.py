@@ -25,7 +25,7 @@ def ensure_file(path: Path, encoding: str = 'utf-8', boilerplate: str = '') -> N
     """
     if path.is_file():
         return
-    with open(path, encoding=encoding) as f:
+    with open(path, 'w', encoding=encoding) as f:
         f.write(boilerplate)
     return
 
