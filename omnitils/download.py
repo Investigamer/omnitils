@@ -70,6 +70,10 @@ def download_file_with_callback(
 
         # Get file size total
         total = r.headers.get('Content-Length', chunk_size)
+        if isinstance(total, str):
+            total = int(''.join([n for n in total if n.isnumeric()]) or 0)
+        elif not isinstance(total, (int, float)):
+            total = 0
 
         # Write the file in chunks
         with open(path, 'wb') as f:
