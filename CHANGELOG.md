@@ -1,3 +1,30 @@
+## 1.0.0 (2024-04-28)
+
+### BREAKING CHANGE
+
+- folders.py and files_data.py will require different imports (from omnitils.files import folders, data)
+
+### Feat
+
+- **strings**: New utility function: decode_url (unescapes and decodes URL string, returns it as yaml.URL object)
+- **properties**: Introduce new properties: auto_prop (property with automatic setter), tracked_prop (property with changes tracked in the parent object or class)
+- **files**: New parent module to replace previous files.py root module, files.py largely subsumed into files/_core.py submodule, folders.py and files_data.py modules relocated here, new archive.py module introduced for working with archives
+- **test**: New parent module for submodules geared towards various testing and benchmarking utilities
+- **fetch**: New parent module for submodules geared towards making requests, downloading files, etc. downloads.py moved to this parent module pending deprecation of previous location
+- **api**: New parent module for submodules geared towards interacting with various common live API services, github.py moved to this parent module pending deprecation of previous location
+- **modules**: New module for dynamic importing of modules and their relative imports
+- **metaclass**: New module for utility meta-classes
+- **cli**: Preliminary implementation of internal CLI tool
+
+### Fix
+
+- **enums**: Correct idiosyncrasies with StrEnum class, rewrite StrEnumMeta and rename to more generic EnumCollection, introduce experimental URLEnum (enum class for yarl.URL objects)
+- **download_file_with_callback**: Cover case of Content-Length not being numeric
+
+### Refactor
+
+- **download,github**: Deprecate moved root modules
+
 ## 0.6.2 (2024-03-01)
 
 ### Fix
