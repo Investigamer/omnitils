@@ -5,11 +5,16 @@
 * LICENSE: Mozilla Public License 2.0
 """
 # Standard Library Imports
+import codecs
+from datetime import datetime
+import html
 import string
 from typing import Optional, Union
-
 import unicodedata
-from datetime import datetime
+from urllib import parse
+
+# Third Party Imports
+import yarl
 from dateutil import parser
 
 # Maps strings to boolean values
@@ -57,7 +62,7 @@ def str_to_bool(text: str) -> bool:
 
 
 def str_to_bool_safe(text: str, default: bool = False) -> bool:
-    """QOL definition for `str_to_bool`, returns default if exception is raised."""
+    """Shorthand for `str_to_bool` which returns default if exception is raised."""
     try:
         return STR_BOOL_MAP[text.lower()]
     except KeyError:
@@ -141,6 +146,26 @@ def normalize_datestr(
     except ValueError as e:
         print(e)
         return datetime.today().strftime(date_fmt)
+
+
+"""
+* URL Util Funcs
+"""
+
+
+def decode_url(url: str) -> yarl.URL:
+    """Unescapes and decodes a URL string and returns it as a URL object.
+
+    Args:
+        url: URL string to format.
+
+    Returns:
+        Formatted URL object.
+    """
+    st = codecs.decode(
+        html.unescape(parse.unquote(url)),
+        'unicode_escape')
+    return yarl.URL(st)
 
 
 """
