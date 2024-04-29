@@ -9,11 +9,11 @@ from pydantic import BaseModel
 
 
 class Schema(BaseModel):
-    """Basic schema class allowing for defined types and default values."""
+    """Basic schema class, extending the Pydantic BaseModel."""
 
 
 class DictSchema(Schema):
-    """Dictionary schema class. Returns all new instances as a validated dictionary."""
+    """Dictionary schema class. Returns all new instances as a dictionary."""
 
     def __new__(cls, **data):
         """Return new instance as a dictionary."""
