@@ -1,5 +1,5 @@
 """
-* File Utilities
+* Core File Utilities
 * Generalized utilities for working with files.
 * Copyright (c) Hexproof Systems <hexproofsystems@gmail.com>
 * LICENSE: Mozilla Public License 2.0
@@ -8,6 +8,7 @@
 import hashlib
 import os
 from pathlib import Path
+from tempfile import NamedTemporaryFile
 from typing import Union
 
 """
@@ -28,6 +29,33 @@ def ensure_file(path: Path, encoding: str = 'utf-8', boilerplate: str = '') -> N
     with open(path, 'w', encoding=encoding) as f:
         f.write(boilerplate)
     return
+
+
+def get_temporary_file(path: Path, ext: str = '.tmp') -> tuple[Path, int]:
+    """Check for an existing temporary file representing a provided file path and ext.
+
+    Args:
+        path: Path to the file we plan to download.
+        ext: Temporary file extension to use, e.g. '.drive' or '.amazon'
+
+    Returns:
+        A tuple containing a path to the temporary file and the current size of that file.
+    """
+
+    # Look for an existing temporary file
+    temp = path.with_suffix(ext)
+    for p in os.listdir(path.parent):
+        file = path.parent / p
+        if file.is_dir():
+            continue
+        if temp.name in file.name:
+            return file, file.stat().st_size
+
+    # Create a new temporary file
+    f = NamedTemporaryFile(prefix=temp.name, dir=temp.parent, delete=False)
+    file = f.name
+    f.close()
+    return Path(file), 0
 
 
 """

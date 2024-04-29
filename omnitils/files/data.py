@@ -133,7 +133,7 @@ def load_data_file(
     Raises:
         FileNotFoundError: If data file does not exist.
         ValueError: If data file type not supported.
-        OSError: If dumping to data file fails.
+        OSError: If loading data file fails.
     """
     # Check if data file is valid
     validate_data_file(path)
@@ -195,6 +195,11 @@ def get_project_version(path: Path) -> str:
 
     Returns:
         Current version string.
+
+    Raises:
+        FileNotFoundError: If project file does not exist.
+        ValueError: If project file type not supported.
+        OSError: If project file fails to load.
     """
     project = load_data_file(path)
     return project.get('tool', {}).get('poetry', {}).get('version', '1.0.0')
