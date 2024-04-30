@@ -1,3 +1,15 @@
+## 1.1.0 (2024-04-29)
+
+### Feat
+
+- **api,fetch**: Multiple new utilities added to gdrive and download modules, implemented some major rewrites to improve clarity and modularity
+
+### Refactor
+
+- **api/github**: Minor syntax changes
+- **files/_core**: Rewrite `get_temporary_file`
+- **fetch/_core**: New `get_new_session` util for creating basic session object
+
 ## 1.0.0 (2024-04-28)
 
 ### BREAKING CHANGE
