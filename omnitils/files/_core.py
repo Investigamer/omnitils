@@ -31,31 +31,34 @@ def ensure_file(path: Path, encoding: str = 'utf-8', boilerplate: str = '') -> N
     return
 
 
-def get_temporary_file(path: Path, ext: str = '.tmp') -> tuple[Path, int]:
-    """Check for an existing temporary file representing a provided file path and ext.
+def get_temporary_file(path: Path, ext: str = '.tmp', allow_existing: bool = False) -> Path:
+    """Check for an existing temporary file representing a provided file path and extension, creates a
+        new temporary file if one doesn't exist.
 
     Args:
         path: Path to the file we plan to download.
-        ext: Temporary file extension to use, e.g. '.drive' or '.amazon'
+        ext: File extension to use when naming the temporary file, defaults to `.tmp`.
+        allow_existing: Whether to use existing temporary file if found, defaults to False.
 
     Returns:
-        A tuple containing a path to the temporary file and the current size of that file.
+        Path to the temporary file.
     """
 
-    # Look for an existing temporary file
+    # Look for an existing file
     temp = path.with_suffix(ext)
-    for p in os.listdir(path.parent):
-        file = path.parent / p
-        if file.is_dir():
-            continue
-        if temp.name in file.name:
-            return file, file.stat().st_size
+    if allow_existing:
+        for p in os.listdir(path.parent):
+            file = path.parent / p
+            if file.is_dir() or os.path.samefile(file, path):
+                continue
+            if temp.name in file.name:
+                return file
 
     # Create a new temporary file
     f = NamedTemporaryFile(prefix=temp.name, dir=temp.parent, delete=False)
     file = f.name
     f.close()
-    return Path(file), 0
+    return Path(file)
 
 
 """
