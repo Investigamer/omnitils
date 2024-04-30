@@ -18,7 +18,7 @@ from backoff import on_exception, expo
 from ratelimit import RateLimitDecorator, sleep_and_retry
 
 # Local Imports
-from omnitils.fetch.download import download_file
+from omnitils.fetch import download_file
 from omnitils.files.folders import mkdir_full_perms
 from omnitils.fetch._core import request_header_default, chunk_size_default
 
@@ -142,7 +142,11 @@ def gh_download_file(
 
     @handler
     def _make_request():
-        return download_file(url, path, gh_get_header(header, auth_token), chunk_size)
+        return download_file(
+            url=url,
+            path=path,
+            header=gh_get_header(header, auth_token),
+            chunk_size=chunk_size)
 
     # Download file
     _make_request()
