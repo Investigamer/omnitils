@@ -5,3 +5,4 @@
 * LICENSE: Mozilla Public License 2.0
 """
 from omnitils.fetch._core import *
+from omnitils.fetch.download import *
