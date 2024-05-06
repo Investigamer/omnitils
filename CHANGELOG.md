@@ -1,3 +1,9 @@
+## 1.1.2 (2024-05-05)
+
+### Refactor
+
+- **schema**: Introduce utility func for joining schemas
+
 ## 1.1.1 (2024-05-05)
 
 ### Refactor
