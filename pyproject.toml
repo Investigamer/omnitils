@@ -26,7 +26,7 @@ loguru = "^0.7.2"
 click = "^8.1.7"
 
 [tool.poetry.group.dev.dependencies]
-commitizen = "^3.14.1"
+commitizen = "^3.25.0"
 mypy = "^1.8.0"
 pytest = "^8.0.0"
 memory-profiler = "^0.61.0"

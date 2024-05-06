@@ -4,8 +4,23 @@
 * Copyright (c) Hexproof Systems <hexproofsystems@gmail.com>
 * LICENSE: Mozilla Public License 2.0
 """
+# Standard Library Imports
+from typing import Any
+
 # Third Party Imports
 from pydantic import BaseModel
+
+"""
+* Types
+"""
+
+
+PriorityMap = dict[str, list[tuple[str, str] | tuple[None, Any]]]
+
+
+"""
+* Schema Classes
+"""
 
 
 class Schema(BaseModel):
