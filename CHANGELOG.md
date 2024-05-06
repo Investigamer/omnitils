@@ -1,3 +1,9 @@
+## 1.1.1 (2024-05-05)
+
+### Refactor
+
+- **schemas**: Add PriorityMap type
+
 ## 1.1.0 (2024-04-29)
 
 ### Feat
