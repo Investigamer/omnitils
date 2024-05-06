@@ -1,3 +1,9 @@
+## 1.1.4 (2024-05-05)
+
+### Fix
+
+- **unify_schemas**: Retrieve schema attributes using getattr
+
 ## 1.1.3 (2024-05-05)
 
 ### Fix
