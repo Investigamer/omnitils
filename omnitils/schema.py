@@ -62,13 +62,17 @@ def unify_schemas(
     for key, sources in priority_map.items():
         for (source, value) in sources:
 
+            # None definition (same key, set None)
+            if source is None:
+                imported_data[key] = None
+
             # String definition (same key)
             if isinstance(source, str):
 
                 # Try to get value from data source
                 use_schema = data.get(source)
                 if use_schema is not None:
-                    use_value = use_schema.get(key)
+                    use_value = getattr(use_schema, key)
                     if use_value is not None:
                         imported_data[key] = use_value
                         break
@@ -85,7 +89,7 @@ def unify_schemas(
                 # Try to get value from data source
                 use_schema = data.get(source_key)
                 if use_schema is not None:
-                    use_value = use_schema.get(source_value)
+                    use_value = getattr(use_schema, source_value)
                     if use_value is not None:
                         imported_data[key] = use_value
                         break
