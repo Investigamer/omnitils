@@ -1,3 +1,9 @@
+## 1.1.3 (2024-05-05)
+
+### Fix
+
+- **unify_schema**: Incorrect variable used for checking if for 'use_value' key, added support for single string priority key
+
 ## 1.1.2 (2024-05-05)
 
 ### Refactor
