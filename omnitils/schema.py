@@ -15,7 +15,7 @@ from pydantic import BaseModel
 """
 
 
-PriorityMap = dict[str, list[tuple[str, str] | tuple[None, Any]]]
+PriorityMap = dict[str, list[str | tuple[str, str] | tuple[None, Any]]]
 
 
 """
@@ -62,16 +62,33 @@ def unify_schemas(
     for key, sources in priority_map.items():
         for (source, value) in sources:
 
-            # Fallback value
-            if source is None:
-                imported_data[key] = value
+            # String definition (same key)
+            if isinstance(source, str):
 
-            # Try to get value from data source
-            source_schema = data.get(source)
-            if source_schema is not None:
-                source_value = source_schema.get(value)
-                if source_value is not None:
+                # Try to get value from data source
+                use_schema = data.get(source)
+                if use_schema is not None:
+                    use_value = use_schema.get(key)
+                    if use_value is not None:
+                        imported_data[key] = use_value
+                        break
+
+            # Tuple definition
+            if isinstance(source, (tuple, list)):
+                source_key, source_value = source
+
+                # Fallback value
+                if source_key is None:
                     imported_data[key] = source_value
+                    break
+
+                # Try to get value from data source
+                use_schema = data.get(source_key)
+                if use_schema is not None:
+                    use_value = use_schema.get(source_value)
+                    if use_value is not None:
+                        imported_data[key] = use_value
+                        break
 
     # Return new Schema object
     return schema(**imported_data)
