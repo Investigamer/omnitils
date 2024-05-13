@@ -23,6 +23,29 @@ from omnitils.fetch._core import request_header_default, chunk_size_default
 """
 
 
+def check_resume_file(path: Union[str, os.PathLike], headers: dict[str, str]) -> bool:
+    """Checks if a file download can be resumed by looking at the file and headers.
+
+    Args:
+        path: Path to the file being downloaded.
+        headers: Headers being passed in the download request.
+
+    Returns:
+        True if resuming, otherwise False.
+    """
+    # Check for a range header with bytes spec
+    if headers.get('Range') is not None and os.path.exists(path):
+        if 'bytes=' in headers['Range']:
+            try:
+                # Check that range and size is equivalent
+                status = headers['Range'][6:].split('-')[0]
+                if int(status) == os.path.getsize(path):
+                    return True
+            except (IndexError, KeyError, TypeError):
+                return False
+    return False
+
+
 def estimate_content_length(response: Response, default: int = 0) -> int:
     """Attempt to get the value of the Content-Length header from a Response. Return default value if not found.
 
@@ -73,6 +96,7 @@ def download_file(
         FileExistsError: If file already exists and cannot be overwritten.
     """
     header = header or request_header_default.copy()
+    write_mode = 'ab' if check_resume_file(path, header) else 'wb'
     with requests.get(url, headers=header, stream=True) as r:
         r.raise_for_status()
 
@@ -80,7 +104,7 @@ def download_file(
         total = estimate_content_length(r) if callback is not None else 0
 
         # Write the file in chunks
-        with open(path, 'ab' if os.path.exists(path) else 'wb') as f:
+        with open(path, write_mode) as f:
             for chunk in r.iter_content(chunk_size=chunk_size):
                 if not chunk:
                     raise OSError('Bad chunk detected, likely a truncated stream!')
@@ -122,9 +146,10 @@ def download_file_from_response(
 
     # Get file size total
     total = estimate_content_length(response) if callback is not None else 0
+    write_mode = 'ab' if check_resume_file(path, response.headers) else 'wb'
 
     # Write the file in chunks
-    with open(path, 'ab' if os.path.exists(path) else 'wb') as f:
+    with open(path, write_mode) as f:
         for chunk in response.iter_content(chunk_size=chunk_size):
             # Check for bad chunks
             if not chunk:

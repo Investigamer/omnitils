@@ -15,7 +15,7 @@ from pydantic import BaseModel
 """
 
 
-PriorityMap = dict[str, list[str | tuple[str, str] | tuple[None, Any]]]
+PriorityMap = dict[str, list[str | tuple[str, str] | tuple[None, Any] | None]]
 
 
 """
@@ -25,6 +25,13 @@ PriorityMap = dict[str, list[str | tuple[str, str] | tuple[None, Any]]]
 
 class Schema(BaseModel):
     """Basic schema class, extending the Pydantic BaseModel."""
+
+
+class ArbitrarySchema(BaseModel):
+    """Schema class allowing for arbitrary types."""
+
+    class Config:
+        arbitrary_types_allowed = True
 
 
 class DictSchema(Schema):

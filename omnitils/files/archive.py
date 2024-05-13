@@ -23,7 +23,7 @@ import py7zr
 from py7zr import SevenZipFile, FILTER_LZMA, FILTER_X86
 
 # Local Imports
-from omnitils.enums import StrEnum
+from omnitils.enums import StrConstant
 from omnitils.strings import str_to_bool_safe
 
 # Locking mechanism
@@ -34,7 +34,7 @@ ARCHIVE_LOCK = Lock()
 """
 
 
-class ArchType(StrEnum):
+class ArchType(StrConstant):
     """Recognized archive extension types."""
     Zip = '.zip'
     GZip = '.gz'
@@ -47,7 +47,7 @@ class ArchType(StrEnum):
     TarSevenZip = '.tar.xz'
 
 
-class WordSize(StrEnum):
+class WordSize(StrConstant):
     """Word Size for 7z compression."""
     WS16 = "16"
     WS24 = "24"
@@ -58,7 +58,7 @@ class WordSize(StrEnum):
     WS128 = "128"
 
 
-class DictionarySize(StrEnum):
+class DictionarySize(StrConstant):
     """Dictionary Size for 7z compression."""
     DS32 = "32"
     DS48 = "48"
