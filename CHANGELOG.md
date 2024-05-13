@@ -1,3 +1,9 @@
+## 1.1.5 (2024-05-13)
+
+### Refactor
+
+- **enums,fetch,files**: Reworked enums classes, StrEnum -> StrConstant, fixed logic dealing with resuming file downloads, added new schema "ArbitrarySchema"
+
 ## 1.1.4 (2024-05-05)
 
 ### Fix
