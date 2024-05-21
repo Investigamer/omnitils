@@ -71,7 +71,11 @@ class StrConstantMeta(EnumMeta):
 
 
 class StrConstant(str, Enum, metaclass=StrConstantMeta):
-    """Enum constant where the value is always a string."""
+    """Enum constant where the value is always a string.
+
+    Todo:
+        Add pydantic type support?
+    """
 
     def __str__(self) -> str:
         """Use cached value for string representation."""
