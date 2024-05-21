@@ -1,3 +1,9 @@
+## 1.2.0 (2024-05-21)
+
+### Feat
+
+- **logs**: New logging focused module for providing a plug and play, visually appealing logger, as well as supporting logger utilities
+
 ## 1.1.5 (2024-05-13)
 
 ### Refactor
