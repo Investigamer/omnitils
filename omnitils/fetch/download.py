@@ -85,7 +85,7 @@ def download_file(
         path: Path to save the file to.
         header: Header object to pass with request, uses default if not provided.
         callback: Callback to execute after each chunk is written. Passes
-            url, path, number of bytes written, and number of bytes total.
+            number of bytes written (int) and number of bytes total (int).
         chunk_size: Chunk size in bytes to download while streaming the file.
 
     Returns:
@@ -95,13 +95,14 @@ def download_file(
         RequestException: If request is unsuccessful.
         FileExistsError: If file already exists and cannot be overwritten.
     """
+    has_callback = callback is not None
     header = header or request_header_default.copy()
     write_mode = 'ab' if check_resume_file(path, header) else 'wb'
     with requests.get(url, headers=header, stream=True) as r:
         r.raise_for_status()
 
         # Get file size total
-        total = estimate_content_length(r) if callback is not None else 0
+        total = estimate_content_length(r) if has_callback else 0
 
         # Write the file in chunks
         with open(path, write_mode) as f:
@@ -111,7 +112,7 @@ def download_file(
                 f.write(chunk)
 
                 # Execute callback if provided
-                if callback is not None:
+                if has_callback:
                     current = f.tell()
                     callback(current, max(current, total))
 
@@ -122,7 +123,7 @@ def download_file(
 def download_file_from_response(
     response: Response,
     path: Union[str, os.PathLike],
-    callback: Optional[Callable] = None,
+    callback: Optional[Callable[[int, int], None]] = None,
     chunk_size: int = chunk_size_default,
 ) -> Union[str, os.PathLike]:
     """Download a file in chunks using a given Request and optional Session, executing a callback
@@ -132,7 +133,7 @@ def download_file_from_response(
         response: Response stream to download file from.
         path: Path to save the file to.
         callback: Optional callback to execute after each chunk is written. Passes
-            number of bytes written and number of bytes total.
+            number of bytes written (int) and number of bytes total (int).
         chunk_size: Chunk size in bytes to download over each `iter_content` iteration, defaults to 8MB.
 
     Returns:
@@ -143,9 +144,10 @@ def download_file_from_response(
         FileExistsError: If file already exists and cannot be overwritten.
     """
     response.raise_for_status()
+    has_callback = callback is not None
 
     # Get file size total
-    total = estimate_content_length(response) if callback is not None else 0
+    total = estimate_content_length(response) if has_callback else 0
     write_mode = 'ab' if check_resume_file(path, response.headers) else 'wb'
 
     # Write the file in chunks
@@ -157,7 +159,7 @@ def download_file_from_response(
             f.write(chunk)
 
             # Execute callback if provided
-            if callback is not None:
+            if has_callback:
                 current = f.tell()
                 callback(current, max(current, total))
 
