@@ -5,11 +5,12 @@
 * LICENSE: Mozilla Public License 2.0
 """
 # Standard Library Imports
+import copy
 from typing import Any, Callable, Optional
 import sys
 
 # Third Party Imports
-from loguru import logger as logger
+from loguru import logger as loguru_logger
 
 # Pre-defined formats
 CASUAL_FORMAT = ("<w>{time:YY}.{time:MM}.{time:DD} {time:HH}:{time:mm}:{time:ss} <b>|</b> "
@@ -50,6 +51,11 @@ LEVEL_COLORS = {
         msg=['m'],
         pos=['lc']),
 }
+
+
+"""
+* Logging Handlers
+"""
 
 
 def formatting_handler(record: dict[str, Any]) -> str:
@@ -98,18 +104,56 @@ def formatting_handler(record: dict[str, Any]) -> str:
     return fmt
 
 
-# Configure base logger
-logger.configure(
-    handlers=[
-        dict(
-            sink=sys.stderr,
-            format=formatting_handler,
-            backtrace=True,
-            diagnose=True,
-            level='DEBUG'
-        )
-    ]
+"""
+* Configure Main Logger
+"""
+
+# Pre-defined handlers
+HANDLER_BASE = dict(
+    sink=sys.stderr,
+    format=formatting_handler,
+    backtrace=True,
+    diagnose=True,
+    level='DEBUG'
 )
+
+# Reset and configure new logger
+loguru_logger.remove()
+logger = copy.deepcopy(loguru_logger)
+logger.configure(handlers=[HANDLER_BASE])
+
+
+"""
+* Context Managers
+"""
+
+
+class TemporaryLogger:
+    def __init__(
+        self,
+        handlers: Optional[list[dict[str, Any]]] = None
+    ):
+        self.logger: type[logger] = copy.deepcopy(loguru_logger)
+        self._handlers: list[dict[str, Any]] = []
+        if handlers is not None:
+            for n in handlers:
+                _base = HANDLER_BASE.copy()
+                _base.update(n)
+                self._handlers.append(_base)
+        else:
+            self._handlers.append(HANDLER_BASE.copy())
+
+    def __enter__(self) -> type[logger]:
+
+        # Add handlers
+        for n in self._handlers:
+            self.logger.add(**n)
+        return self.logger
+
+    def __exit__(self, exc_type, exc_value, traceback):
+
+        # Remove the new sink
+        del self.logger
 
 
 """
@@ -164,3 +208,34 @@ def log_test_result(
         return wrapper
 
     return decorator
+
+
+"""
+* Logger Utility Funcs
+"""
+
+
+def get_logger(handlers: Optional[list[dict[str, Any]]] = None) -> type[logger]:
+    """Return a unique loguru logger object with optional provided handlers.
+
+    Args:
+        handlers: A list of handler dict definitions, otherwise will use the default handler.
+
+    Returns:
+        A unique loguru logger object.
+    """
+    _logger: type[logger] = copy.deepcopy(loguru_logger)
+    _handlers: list[dict[str, Any]] = []
+
+    # Handlers provided
+    if handlers is not None:
+        for n in handlers:
+            _base = HANDLER_BASE.copy()
+            _base.update(n)
+            _handlers.append(_base)
+        [_logger.add(**n) for n in _handlers]
+        return _logger
+
+    # Use default handler
+    _logger.add(**HANDLER_BASE)
+    return _logger
