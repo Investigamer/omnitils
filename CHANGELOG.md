@@ -1,3 +1,10 @@
+## 1.2.1 (2024-05-24)
+
+### Refactor
+
+- **enums,fetch**: Minor docstring changes, readability improvements
+- **logs**: Add new context handler `TemporaryLogger`, add new utility func `get_logger`, update logger initialization
+
 ## 1.2.0 (2024-05-21)
 
 ### Feat
