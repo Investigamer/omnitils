@@ -11,6 +11,7 @@ import sys
 
 # Third Party Imports
 from loguru import logger as loguru_logger
+from loguru._logger import Logger
 
 # Pre-defined formats
 CASUAL_FORMAT = ("<w>{time:YY}.{time:MM}.{time:DD} {time:HH}:{time:mm}:{time:ss} <b>|</b> "
@@ -133,7 +134,7 @@ class TemporaryLogger:
         self,
         handlers: Optional[list[dict[str, Any]]] = None
     ):
-        self.logger: type[logger] = copy.deepcopy(loguru_logger)
+        self.logger: Logger = copy.deepcopy(loguru_logger)
         self._handlers: list[dict[str, Any]] = []
         if handlers is not None:
             for n in handlers:
@@ -143,7 +144,7 @@ class TemporaryLogger:
         else:
             self._handlers.append(HANDLER_BASE.copy())
 
-    def __enter__(self) -> type[logger]:
+    def __enter__(self) -> Logger:
 
         # Add handlers
         for n in self._handlers:
@@ -215,7 +216,7 @@ def log_test_result(
 """
 
 
-def get_logger(handlers: Optional[list[dict[str, Any]]] = None) -> type[logger]:
+def get_logger(handlers: Optional[list[dict[str, Any]]] = None) -> Logger:
     """Return a unique loguru logger object with optional provided handlers.
 
     Args:
@@ -224,7 +225,7 @@ def get_logger(handlers: Optional[list[dict[str, Any]]] = None) -> type[logger]:
     Returns:
         A unique loguru logger object.
     """
-    _logger: type[logger] = copy.deepcopy(loguru_logger)
+    _logger: Logger = copy.deepcopy(loguru_logger)
     _handlers: list[dict[str, Any]] = []
 
     # Handlers provided
