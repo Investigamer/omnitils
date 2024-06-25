@@ -1,3 +1,10 @@
+## 1.2.2 (2024-06-25)
+
+### Refactor
+
+- **logs**: Introduce support for a line continue tag. Use [>] at the end of a log message to drop the line terminator and at the beginning of a log message to continue the previous message
+- **Logger**: Update typing for Logger object
+
 ## 1.2.1 (2024-05-24)
 
 ### Refactor
