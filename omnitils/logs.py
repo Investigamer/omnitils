@@ -14,16 +14,20 @@ from loguru import logger as loguru_logger
 from loguru._logger import Logger
 
 # Pre-defined formats
+CONTINUE_FORMAT = '<msg>{message}</msg>'
 CASUAL_FORMAT = ("<w>{time:YY}.{time:MM}.{time:DD} {time:HH}:{time:mm}:{time:ss} <b>|</b> "
                  "<lvl>{level: <8}</lvl> <b>|</b> "
-                 "<msg>{message}</msg></w>\n")
+                 "<msg>{message}</msg></w>")
 VERBOSE_FORMAT = ("<w>{time:YY}.{time:MM}.{time:DD} {time:HH}:{time:mm}:{time:ss} <b>|</b> "
                   "<lvl>{level: <8}</lvl> <b>|</b> "
-                  "<pos>[{location}]</pos> <b>|</b> <msg>{message}</msg></w>\n")
+                  "<pos>[{location}]</pos> <b>|</b> <msg>{message}</msg></w>")
 EXCEPTION_FORMAT = ("<w>{time:YY}.{time:MM}.{time:DD} {time:HH}:{time:mm}:{time:ss} <b>|</b> "
                     "<lvl>{level: <8}</lvl> <b>|</b> "
                     "<pos>[{location}]</pos> <b>|</b> <msg>{message}</msg>\n"
                     "<lr>{exception}</lr></w>\n")
+
+# Continuation marker
+TAG_CONTINUE = '[>]'
 
 # Pre-defined colors
 LEVEL_COLORS = {
@@ -71,14 +75,29 @@ def formatting_handler(record: dict[str, Any]) -> str:
 
     # Default format
     fmt = CASUAL_FORMAT
+    terminator = '\n'
 
     # Check for special case formats
     _level = record['level'].name
     _is_verbose = bool(_level in ['WARNING', 'ERROR', 'CRITICAL'])
-    if _is_verbose:
+    _is_exception = record['exception']
+    _message = record['message']
+
+    # Check for a continuation line
+    if not _is_exception:
+        if _message.startswith(TAG_CONTINUE):
+            _message = _message[3:]
+            fmt = CONTINUE_FORMAT
+        if _message.endswith(TAG_CONTINUE):
+            _message = _message[:-3]
+            terminator = ''
+        record['message'] = _message
+
+    # Check for verbose line
+    if _is_verbose and fmt != CONTINUE_FORMAT:
         mod_func = '' if '<' in record['function'] else '.{function}'
         mod_location = '{module}' + mod_func + '.{line}'
-        fmt = EXCEPTION_FORMAT if record['exception'] else VERBOSE_FORMAT
+        fmt = EXCEPTION_FORMAT if _is_exception else VERBOSE_FORMAT
         fmt = fmt.replace('{location}', mod_location)
 
     # Inject color tags
@@ -101,7 +120,8 @@ def formatting_handler(record: dict[str, Any]) -> str:
         fmt = fmt.replace(f'<{name}>', left)
         fmt = fmt.replace(f'</{name}>', right)
 
-    # Return custom format
+    # Add line terminator and return
+    fmt = fmt + terminator
     return fmt
 
 
