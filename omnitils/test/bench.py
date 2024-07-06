@@ -32,24 +32,60 @@ class BenchmarkResult(Schema):
 """
 
 
-def time_function(func: Callable) -> Callable:
+class time_function:
     """Print the execution time in seconds of any decorated function.
 
     Args:
-        func: The function to wrap.
-
-    Returns:
-        Wrapped function.
+        msg_or_func:
+            * If the decorator is not called, this serves as the decorated function which is cached for
+                use in the wrapper.
+            * If the decorator is called, you may provide a string used to format the logger output which
+                that prints the execution time. This string supports optional format variables {f} and {t}.
+                "f" will be formatted with the function name, "t" will be formatted with the execution time.
+            * Example: "Function `{f}` completed in {t:.2f} seconds."
     """
-    def wrapper(*args, **kwargs):
-        """Wraps the function call in a `perf_counter` timer."""
-        start_time = perf_counter()
-        result = func(*args, **kwargs)
-        end_time = perf_counter()
-        execution_time = end_time - start_time
-        logger.info(f"Executed {func.__name__} in {execution_time:.4f} seconds")
-        return result
-    return wrapper
+
+    def __init__(self, msg_or_func: Optional[str | Callable] = None):
+        self._func = None
+        self._msg = 'Function `{f}` completed in {t:.4f} seconds.'
+
+        # Use argument as function or log format
+        if callable(msg_or_func):
+            self._func = msg_or_func
+        elif msg_or_func is not None:
+            self._msg = msg_or_func
+
+    def __call__(
+        self,
+        *args,
+        **kw
+    ) -> Callable:
+        """Print the execution time in seconds of any decorated function.
+
+        Args:
+            msg: Logger format for timing message.
+
+        Returns:
+            Decorator function.
+        """
+
+        def wrapper(*_args, **_kwargs):
+            """Wrapped function."""
+            start_time = perf_counter()
+            result = self._func(*_args, **_kwargs)
+            end_time = perf_counter()
+            execution_time = end_time - start_time
+            logger.info(
+                self._msg.format(
+                    f=self._func.__name__,
+                    t=execution_time))
+            return result
+
+        # Check if function was provided
+        if self._func is None:
+            self._func = [*args].pop()
+            return wrapper
+        return wrapper(*args, **kw)
 
 
 """
