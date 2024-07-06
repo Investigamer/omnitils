@@ -1,3 +1,9 @@
+## 1.2.3 (2024-07-06)
+
+### Refactor
+
+- **time_function**: Update `time_function` decorator to accept a log messaging format, tweak to allow called and uncalled modes
+
 ## 1.2.2 (2024-06-25)
 
 ### Refactor
