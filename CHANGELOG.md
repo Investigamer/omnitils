@@ -1,3 +1,9 @@
+## 1.2.4 (2024-08-14)
+
+### Refactor
+
+- **bench**: Use omnitils internal logger by default, implement optional logger parameter
+
 ## 1.2.3 (2024-07-06)
 
 ### Refactor
