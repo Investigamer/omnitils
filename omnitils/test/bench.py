@@ -9,7 +9,7 @@ from time import perf_counter
 from typing import Optional, Callable, Any
 
 # Third Party
-from loguru import logger
+from omnitils.logs import logger as _logger
 
 # Local Imports
 from omnitils.schema import Schema
@@ -43,16 +43,18 @@ class time_function:
                 that prints the execution time. This string supports optional format variables {f} and {t}.
                 "f" will be formatted with the function name, "t" will be formatted with the execution time.
             * Example: "Function `{f}` completed in {t:.2f} seconds."
+        logger: Logging object to use.
     """
 
-    def __init__(self, msg_or_func: Optional[str | Callable] = None):
+    def __init__(self, msg_or_func: Optional[str | Callable] = None, logger: Any = None):
         self._func = None
         self._msg = 'Function `{f}` completed in {t:.4f} seconds.'
+        self._logger = logger or _logger
 
         # Use argument as function or log format
         if callable(msg_or_func):
             self._func = msg_or_func
-        elif msg_or_func is not None:
+        elif isinstance(msg_or_func, str):
             self._msg = msg_or_func
 
     def __call__(
@@ -75,7 +77,7 @@ class time_function:
             result = self._func(*_args, **_kwargs)
             end_time = perf_counter()
             execution_time = end_time - start_time
-            logger.info(
+            self._logger.info(
                 self._msg.format(
                     f=self._func.__name__,
                     t=execution_time))
@@ -96,7 +98,8 @@ class time_function:
 def benchmark_funcs(
     funcs: list[tuple[Callable, list[Any]]],
     iterations: int = 1000,
-    reset_func: Optional[Callable] = None
+    reset_func: Optional[Callable] = None,
+    logger: Any = None
 ) -> None:
     """Test the execution time of a new function against an older function.
 
@@ -104,7 +107,10 @@ def benchmark_funcs(
         funcs: List of tuples containing a func to test and args to pass to it.
         iterations: Number of calls to each function to perform, must be higher than 1.
         reset_func: Optional function to call to reset app state between actions.
+        logger: Logging object to use.
     """
+    logger = logger or _logger
+
     # Skip if no funcs provided
     if not funcs:
         return logger.critical('No functions provided for benchmarking.')
