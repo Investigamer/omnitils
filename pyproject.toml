@@ -5,6 +5,26 @@ description = "Universal reusable Python utils for the modern human."
 authors = ["Investigamer <freethoughtleft@gmail.com>"]
 license = "MPL-2.0"
 readme = "README.md"
+repository = "https://github.com/Investigamer/omnitils"
+issues = "https://github.com/Investigamer/omnitils/issues"
+changelog = "https://github.com/Investigamer/omnitils/blob/main/CHANGELOG.md"
+keywords = ["omnitils", "utilities", "utils", "files", "schema", "test", "benchmark", "enums", "logs", "investigamer"]
+classifiers = [
+    # Development status
+    "Development Status :: 4 - Beta",
+
+    # License
+    "License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)",
+
+    # Audience and Purpose
+    "Intended Audience :: Developers",
+    "Topic :: Utilities",
+
+    # Supported Python versions
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12"
+]
 
 [tool.poetry.dependencies]
 python = ">=3.10,<3.13"
