@@ -4,6 +4,7 @@
 * Copyright (c) Hexproof Systems <hexproofsystems@gmail.com>
 * LICENSE: Mozilla Public License 2.0
 """
+import functools
 # Standard Library Imports
 from time import perf_counter
 from typing import Optional, Callable, Any
@@ -61,33 +62,29 @@ class time_function:
         self,
         *args,
         **kw
-    ) -> Callable:
+    ) -> Any:
         """Print the execution time in seconds of any decorated function.
 
-        Args:
-            msg: Logger format for timing message.
-
         Returns:
-            Decorator function.
+            Wrapped function.
         """
+        is_wrapped: bool = bool(self._func is None)
+        _func: Callable = [*args].pop() if is_wrapped else self._func
+        _func_name: str = _func.__name__
 
+        @functools.wraps(_func)
         def wrapper(*_args, **_kwargs):
             """Wrapped function."""
-            start_time = perf_counter()
-            result = self._func(*_args, **_kwargs)
-            end_time = perf_counter()
-            execution_time = end_time - start_time
+            s = perf_counter()
+            result = _func(*_args, **_kwargs)
             self._logger.info(
                 self._msg.format(
-                    f=self._func.__name__,
-                    t=execution_time))
+                    f=_func_name,
+                    t=(perf_counter() - s)))
             return result
 
-        # Check if function was provided
-        if self._func is None:
-            self._func = [*args].pop()
-            return wrapper
-        return wrapper(*args, **kw)
+        # Return result or wrapped function
+        return wrapper if is_wrapped else wrapper(*args, **kw)
 
 
 """
