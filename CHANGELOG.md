@@ -1,3 +1,9 @@
+## 1.2.5 (2024-08-24)
+
+### Refactor
+
+- **bench**: Improve benchmarking decorator "time_function"
+
 ## 1.2.4 (2024-08-14)
 
 ### Refactor
