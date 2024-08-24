@@ -5,9 +5,6 @@ description = "Universal reusable Python utils for the modern human."
 authors = ["Investigamer <freethoughtleft@gmail.com>"]
 license = "MPL-2.0"
 readme = "README.md"
-repository = "https://github.com/Investigamer/omnitils"
-issues = "https://github.com/Investigamer/omnitils/issues"
-changelog = "https://github.com/Investigamer/omnitils/blob/main/CHANGELOG.md"
 keywords = ["omnitils", "utilities", "utils", "files", "schema", "test", "benchmark", "enums", "logs", "investigamer"]
 classifiers = [
     # Development status
@@ -25,6 +22,13 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12"
 ]
+
+[tool.poetry.urls]
+"Changelog" = "https://github.com/Investigamer/omnitils/blob/main/CHANGELOG.md"
+"Sponsor" = "https://patreon.com/mpcfill"
+"Discord" = "https://discord.gg/magicproxies"
+"Issues" = "https://github.com/Investigamer/omnitils/issues"
+"Source" = "https://github.com/Investigamer/omnitils"
 
 [tool.poetry.dependencies]
 python = ">=3.10,<3.13"
