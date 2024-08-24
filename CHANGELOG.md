@@ -1,3 +1,9 @@
+## 1.2.6 (2024-08-24)
+
+### Refactor
+
+- **schema**: Deprecated unused "unify_schemas" function
+
 ## 1.2.5 (2024-08-24)
 
 ### Refactor
