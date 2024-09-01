@@ -1,3 +1,9 @@
+## 1.3.0 (2024-09-01)
+
+### Feat
+
+- **logs**: Greatly optional parameters available to the logger object, add a `LogResults` context manager, add a function for reconfiguring a logger object, simplify the `log_test_result` decorator
+
 ## 1.2.6 (2024-08-24)
 
 ### Refactor
