@@ -2,7 +2,7 @@
 name = "omnitils"
 version = "1.2.6"
 description = "Universal reusable Python utils for the modern human."
-authors = ["Investigamer <freethoughtleft@gmail.com>"]
+authors = ["Investigamer <hexproofsystems@gmail.com>"]
 license = "MPL-2.0"
 readme = "README.md"
 keywords = ["omnitils", "utilities", "utils", "files", "schema", "test", "benchmark", "enums", "logs", "investigamer"]
@@ -25,10 +25,10 @@ classifiers = [
 
 [tool.poetry.urls]
 "Changelog" = "https://github.com/Investigamer/omnitils/blob/main/CHANGELOG.md"
-"Sponsor" = "https://patreon.com/mpcfill"
 "Discord" = "https://discord.gg/magicproxies"
 "Issues" = "https://github.com/Investigamer/omnitils/issues"
 "Source" = "https://github.com/Investigamer/omnitils"
+"Sponsor" = "https://patreon.com/mpcfill"
 
 [tool.poetry.dependencies]
 python = ">=3.10,<3.13"
