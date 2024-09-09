@@ -179,7 +179,7 @@ def dump_data_file(
     with suppress(Exception), util_file_lock, open(path, 'w', encoding='utf-8') as f:
         parser['dump'](obj, f, **parser['dump_kw'])
         return
-    raise OSError(f"Unable to dump data from data file:\n{str(path)}")
+    raise OSError(f"Unable to dump data to data file:\n{str(path)}")
 
 
 """
