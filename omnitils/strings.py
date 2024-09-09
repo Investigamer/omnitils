@@ -148,6 +148,18 @@ def normalize_datestr(
         return datetime.today().strftime(date_fmt)
 
 
+def normalize_ver(st: str) -> str:
+    """Normalize a version string for safe comparison.
+
+    Args:
+        st: String to normalize.
+
+    Returns:
+        Normalized version string.
+    """
+    return ''.join([n for n in st if n in '.0123456789'])
+
+
 """
 * URL Util Funcs
 """
