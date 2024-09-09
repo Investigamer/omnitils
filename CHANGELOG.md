@@ -1,3 +1,9 @@
+## 1.3.1 (2024-09-08)
+
+### Refactor
+
+- **strings**: New util: `normalize_ver`, normalize a version string
+
 ## 1.3.0 (2024-09-01)
 
 ### Feat
