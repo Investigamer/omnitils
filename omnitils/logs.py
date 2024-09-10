@@ -172,6 +172,7 @@ def formatting_handler(record: dict[str, Any]) -> str:
     # Add message
     if _show_message:
         _fmt = _add_component(_fmt, COMPONENT_MESSAGE)
+        _fmt = _fmt.replace('{message}', (record['message'] or ''))
 
     if _show_exception:
         _fmt = _add_component(_fmt, COMPONENT_EXCEPTION, '\n')
@@ -195,7 +196,11 @@ HANDLER_DEFAULT = dict(
 """
 
 
-def reconfigure_logger(obj: Logger = logger, handlers: Optional[list[dict[str, Any]]] = None, **kwargs) -> Logger:
+def reconfigure_logger(
+    obj: Logger = logger,
+    handlers: Optional[list[dict[str, Any]]] = None,
+    **kwargs
+) -> Logger:
     """Returns a configured loguru logger object."""
     if not handlers:
         handlers = [HANDLER_DEFAULT]
