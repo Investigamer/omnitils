@@ -1,3 +1,9 @@
+## 1.3.3 (2024-09-09)
+
+### Fix
+
+- **log**: Fixed case where tags were not processed in addendum logs (where add_more=True)
+
 ## 1.3.2 (2024-09-09)
 
 ### Refactor
