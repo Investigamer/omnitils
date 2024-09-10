@@ -1,3 +1,9 @@
+## 1.3.2 (2024-09-09)
+
+### Refactor
+
+- **logs**: Ensure that logger processes style tags by default
+
 ## 1.3.1 (2024-09-08)
 
 ### Refactor
