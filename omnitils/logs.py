@@ -115,6 +115,7 @@ def formatting_handler(record: dict[str, Any]) -> str:
     # Establish base values
     _level = record['level'].name
     _extra = record.get('extra', {})
+    _msg = record.get('message', '')
     _exception = record.get('exception')
     _fmt = ''
 
@@ -137,7 +138,10 @@ def formatting_handler(record: dict[str, Any]) -> str:
         if bool(_extra.get('await_more', False)):
             terminator = ''
         if bool(_extra.get('add_more', False)):
-            return colorize_log_format(COMPONENT_MESSAGE, _level) + terminator
+            return colorize_log_format(
+                COMPONENT_MESSAGE.replace('{message}', _msg),
+                _level
+            ) + terminator
 
     def _add_component(_log_fmt, _component, _separator: Optional[str] = _sep) -> str:
         """Adds a component to a provided log format, with a separator."""
@@ -171,8 +175,7 @@ def formatting_handler(record: dict[str, Any]) -> str:
 
     # Add message
     if _show_message:
-        _fmt = _add_component(_fmt, COMPONENT_MESSAGE)
-        _fmt = _fmt.replace('{message}', (record['message'] or ''))
+        _fmt = _add_component(_fmt, COMPONENT_MESSAGE.replace('{message}', _msg))
 
     if _show_exception:
         _fmt = _add_component(_fmt, COMPONENT_EXCEPTION, '\n')
