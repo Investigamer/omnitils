@@ -2,7 +2,6 @@
 * Utils: Images
 """
 # Standard Library Imports
-import os
 from pathlib import Path
 from typing import Optional
 
@@ -17,13 +16,13 @@ from PIL.Image import Resampling
 
 
 def downscale_image_by_width(
-        path_img: Path,
-        path_save: Optional[Path] = None,
-        max_width: Optional[int] = None,
-        optimize: bool = True,
-        quality: int | int = 95,
-        resample: Resampling = Resampling.LANCZOS,
-        convert_rgb: bool = True
+    path_img: Path,
+    path_save: Optional[Path] = None,
+    max_width: Optional[int] = None,
+    optimize: bool = True,
+    quality: int | int = 95,
+    resample: Resampling = Resampling.LANCZOS,
+    convert_rgb: bool = True
 ) -> Path | None:
     """Downscale an image proportionately to a given maximum width value.
 
@@ -63,13 +62,13 @@ def downscale_image_by_width(
 
 
 def downscale_image_by_height(
-        path_img: Path,
-        path_save: Optional[Path] = None,
-        max_height: Optional[int] = None,
-        optimize: bool = True,
-        quality: int | int = 95,
-        resample: Resampling = Resampling.LANCZOS,
-        convert_rgb: bool = True
+    path_img: Path,
+    path_save: Optional[Path] = None,
+    max_height: Optional[int] = None,
+    optimize: bool = True,
+    quality: int | int = 95,
+    resample: Resampling = Resampling.LANCZOS,
+    convert_rgb: bool = True
 ) -> Path | None:
     """Downscale an image proportionately to a given maximum height value.
 
