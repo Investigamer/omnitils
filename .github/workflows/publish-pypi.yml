@@ -3,12 +3,10 @@ name: "Publish Releases: PyPi / GitHub"
 on:
   push:
     tags:
-      - '*'
+      - '*.*.*'
   workflow_dispatch:
 
 env:
-  SKIP_BUILD: false
-  GITHUB_TOKEN: ${{ secrets.GH_AUTH_TOKEN }}
   PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
 
 jobs:
@@ -48,16 +46,21 @@ jobs:
       run: poetry install
 
     # Publish to PyPi
-    - name: Publish to PyPI
-      run: |
-        poetry config pypi-token.pypi $PYPI_TOKEN
-        poetry publish --build
+    #- name: Publish to PyPI
+    #  run: |
+    #    poetry config pypi-token.pypi $PYPI_TOKEN
+    #    poetry publish --build
 
     # Get Version Tag
-    - name: Get Version
+    - name: Generate Changes
       id: latest_version
-      run: echo ::set-output name=tag::${GITHUB_REF#refs/*/}
+      run: |
+        echo "VERSION_TAG=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+        cz changelog $VERSION_TAG --file-name="CHANGES.md"
 
     # Generate GitHub Release
     - name: Create Release
-      run: gh release create ${{ steps.latest_version.outputs.tag }} --generate-notes
+      uses: softprops/action-gh-release@v2
+      with:
+        body_path: CHANGES.md
+        # tag_name: ${{ env.VERSION_TAG }}
