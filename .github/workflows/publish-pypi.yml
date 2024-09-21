@@ -63,4 +63,4 @@ jobs:
       uses: softprops/action-gh-release@v2
       with:
         body_path: CHANGES.md
-        # tag_name: ${{ env.VERSION_TAG }}
+        tag_name: ${{ env.VERSION_TAG }}
