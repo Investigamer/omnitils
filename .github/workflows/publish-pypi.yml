@@ -49,7 +49,7 @@ jobs:
     - name: Publish to PyPI
       run: |
         poetry config pypi-token.pypi $PYPI_TOKEN
-        poetry publish --build
+    #    poetry publish --build
 
     # Get Version Tag
     - name: Generate Changes
