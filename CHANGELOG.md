@@ -1,3 +1,15 @@
+## 1.4.1 (2024-09-22)
+
+### Fix
+
+- **duplicate**: Remove CHANGES.md from repository
+- **workflows**: Ensure build workflow functions correctly
+- **workflows**: Ensure dev deps are installed during `poetry install` command
+
+### Refactor
+
+- **workflows**: Update build pipeline
+
 ## 1.4.0 (2024-09-20)
 
 ### Feat
