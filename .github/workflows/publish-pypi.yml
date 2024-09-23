@@ -8,6 +8,7 @@ on:
 
 env:
   PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
+  GITHUB_TOKEN: ${{ secrets.GH_AUTH_TOKEN }}
 
 jobs:
   build-and-publish:
@@ -45,23 +46,31 @@ jobs:
     - name: Install Deps
       run: poetry install --with dev
 
+    # Get Version Tag
+    - name: Set up version
+      id: latest_version
+      run: |
+        echo "VERSION_TAG=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
+
+    # Generate Incremental Changelog
+    - name: Generate Incremental Changelog
+      run: |
+        poetry run cz changelog $VERSION_TAG --file-name="release_notes.md"
+
     # Publish to PyPi
     - name: Publish to PyPI
       run: |
         poetry config pypi-token.pypi $PYPI_TOKEN
     #    poetry publish --build
 
-    # Get Version Tag
-    - name: Generate Changes
-      id: latest_version
-      run: |
-        echo "VERSION_TAG=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
-        poetry run cz changelog $VERSION_TAG --file-name="CHANGES.md"
-
-    # Generate GitHub Release
+    # Create Release
     - name: Create Release
       uses: softprops/action-gh-release@v2
       with:
-        body_path: CHANGES.md
+        body_path: release_notes.md
         tag_name: ${{ env.VERSION_TAG }}
-        token: ${{ secrets.GH_AUTH_TOKEN }}
+        token: ${{ env.GITHUB_TOKEN }}
+
+    # Clean up
+    - name: Clean up
+      run: rm release_notes.md
