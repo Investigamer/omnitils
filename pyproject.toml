@@ -46,6 +46,7 @@ tomli = "^2.0.1"
 pydantic = "^2.6.0"
 loguru = "^0.7.2"
 click = "^8.1.7"
+python-dateutil = "^2.9.0.post0"
 
 [tool.poetry.group.dev.dependencies]
 commitizen = "^3.25.0"
