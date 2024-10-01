@@ -1,3 +1,13 @@
+## 1.4.2 (2024-10-01)
+
+### Fix
+
+- **dateutil**: Add missing dependency
+
+### Refactor
+
+- **release.yml**: Deprecate default release template
+
 ## 1.4.1 (2024-09-22)
 
 ### Fix
