@@ -12,6 +12,7 @@ from typing import Union, Callable, Optional
 # Third Party Imports
 import requests
 from requests import Response
+from requests.structures import CaseInsensitiveDict
 from yarl import URL
 
 # Local Imports
@@ -23,7 +24,10 @@ from omnitils.fetch._core import request_header_default, chunk_size_default
 """
 
 
-def check_resume_file(path: Union[str, os.PathLike], headers: dict[str, str]) -> bool:
+def check_resume_file(
+    path: Union[str, os.PathLike],
+    headers: dict[str] | CaseInsensitiveDict[str]
+) -> bool:
     """Checks if a file download can be resumed by looking at the file and headers.
 
     Args:
