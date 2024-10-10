@@ -1,3 +1,14 @@
+## 1.4.3 (2024-10-10)
+
+### Fix
+
+- **typing**: Improve accuracy of defined types
+
+### Refactor
+
+- **schema**: Add "ArbitraryDictSchema", alternative for DictSchema that allows arbitrary types
+- **cli/testing**: Use DisposableDir to generate temporary directory when testing github downloads
+
 ## 1.4.2 (2024-10-01)
 
 ### Fix
