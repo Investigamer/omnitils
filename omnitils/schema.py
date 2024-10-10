@@ -5,7 +5,7 @@
 * LICENSE: Mozilla Public License 2.0
 """
 # Standard Library Imports
-from typing import Any, Optional
+from typing import Any
 
 # Third Party Imports
 from pydantic import BaseModel
@@ -42,3 +42,10 @@ class DictSchema(Schema):
         new = super().__new__(cls)
         new.__init__(**data)
         return new.model_dump()
+
+
+class ArbitraryDictSchema(DictSchema):
+    """Dictionary schema class allowing for arbitrary types."""
+
+    class Config:
+        arbitrary_types_allowed = True
