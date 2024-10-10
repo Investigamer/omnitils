@@ -7,7 +7,6 @@
 # Standard Library Imports
 import os
 import shutil
-from pathlib import Path
 
 # Third Party Imports
 import click
@@ -17,9 +16,7 @@ from loguru import logger
 from omnitils.api.github import (
     gh_download_repository,
     gh_download_directory_files)
-
-# Test resources
-temp_dir = Path(os.getcwd(), 'temp')
+from omnitils.files import DisposableDir
 
 """
 * Test Group: Github
@@ -30,58 +27,49 @@ temp_dir = Path(os.getcwd(), 'temp')
 def test_gh_download_repository():
     """Tests the use of `omnitils.fetch.gh_download_repository`."""
 
-    # Setup test
-    # Todo: Create context handler for creating and disposing of temporary directory
-    if not temp_dir.is_dir():
-        os.mkdir(temp_dir)
+    # Setup test directory
+    with DisposableDir() as temp_dir:
 
-    # Perform test
-    extracted = gh_download_repository(
-        user='Investigamer',
-        repo='omnitils',
-        path=temp_dir)
-    check_file = extracted / 'poetry.lock'
-    try:
-        # Check repo directory
-        assert extracted.is_dir()
+        # Perform test
+        extracted = gh_download_repository(
+            user='Investigamer',
+            repo='omnitils',
+            path=temp_dir)
+        check_file = extracted / 'poetry.lock'
         try:
-            # Check test file
-            assert check_file.is_file()
-            logger.success('Test passed!')
+            # Check repo directory
+            assert extracted.is_dir()
+            try:
+                # Check test file
+                assert check_file.is_file()
+                logger.success('Test passed!')
+            except AssertionError:
+                logger.error('Test file missing from downloaded repo!')
+            shutil.rmtree(extracted)
         except AssertionError:
-            logger.error('Test file missing from downloaded repo!')
-        shutil.rmtree(extracted)
-    except AssertionError:
-        logger.error('Repo directory not downloaded!')
-
-    # Test completed
-    shutil.rmtree(temp_dir)
+            logger.error('Repo directory not downloaded!')
 
 
 @click.command()
 def test_gh_download_directory_files():
     """Tests the user of `omnitils.fetch.gh_download_directory_files`."""
 
-    # Setup test
-    if not temp_dir.is_dir():
-        os.mkdir(temp_dir)
+    # Setup test directory
+    with DisposableDir() as temp_dir:
 
-    # Perform test
-    files_downloaded = gh_download_directory_files(
-        user='Investigamer',
-        repo='omnitils',
-        repo_dir='omnitils',
-        path=temp_dir)
-    try:
-        # Check repo directory
-        assert len(files_downloaded) > 0
-        [os.remove(n) for n in files_downloaded]
-        logger.success('Test passed!')
-    except AssertionError:
-        return logger.error('No files downloaded from repo!')
-
-    # Test completed
-    shutil.rmtree(temp_dir)
+        # Perform test
+        files_downloaded = gh_download_directory_files(
+            user='Investigamer',
+            repo='omnitils',
+            repo_dir='omnitils',
+            path=temp_dir)
+        try:
+            # Check repo directory
+            assert len(files_downloaded) > 0
+            [os.remove(n) for n in files_downloaded]
+            logger.success('Test passed!')
+        except AssertionError:
+            return logger.error('No files downloaded from repo!')
 
 
 @click.group(
