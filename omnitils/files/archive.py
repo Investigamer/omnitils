@@ -3,7 +3,6 @@
 """
 # Standard Library
 import bz2
-from _typeshed import SupportsWrite
 from contextlib import suppress
 import gzip
 import gc
@@ -14,7 +13,7 @@ import shutil
 import subprocess
 import tarfile
 from threading import Lock
-from typing import Optional, Callable, IO
+from typing import Optional, Callable
 import zipfile
 
 # Third Party Imports
@@ -253,9 +252,8 @@ def unpack_gz(path: Path) -> None:
     if not path.is_file():
         raise FileNotFoundError(f'Archive not found: {str(path)}')
     output = path.parent / path.name[:-3]
-    fw: SupportsWrite[bytes]
     with gzip.open(path) as fr, open(output, 'wb') as fw:
-        shutil.copyfileobj(fr, fw)
+        shutil.copyfileobj(fr, fw)  # noqa
 
 
 def unpack_xz(path: Path) -> None:
@@ -270,9 +268,8 @@ def unpack_xz(path: Path) -> None:
     if not path.is_file():
         raise FileNotFoundError(f'Archive not found: {str(path)}')
     output = path.parent / path.name[:-3]
-    fw: SupportsWrite[bytes]
     with lzma.open(path) as fr, open(output, 'wb') as fw:
-        shutil.copyfileobj(fr, fw)
+        shutil.copyfileobj(fr, fw)  # noqa
 
 
 def unpack_bz2(path: Path) -> None:
@@ -287,9 +284,8 @@ def unpack_bz2(path: Path) -> None:
     if not path.is_file():
         raise FileNotFoundError(f'Archive not found: {str(path)}')
     output = path.parent / path.name[:-4]
-    fw: SupportsWrite[bytes]
     with bz2.open(path) as fr, open(output, mode='wb') as fw:
-        shutil.copyfileobj(fr, fw)
+        shutil.copyfileobj(fr, fw)  # noqa
 
 
 def unpack_7z(path: Path) -> None:
