@@ -1,3 +1,9 @@
+## 1.4.4 (2024-10-10)
+
+### Fix
+
+- **files/archive**: Remove broken import, fix failed typing
+
 ## 1.4.3 (2024-10-10)
 
 ### Fix

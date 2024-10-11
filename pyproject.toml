@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "omnitils"
-version = "1.4.3"
+version = "1.4.4"
 description = "Universal reusable Python utils for the modern human."
 authors = ["Investigamer <hexproofsystems@gmail.com>"]
 license = "MPL-2.0"
@@ -54,7 +54,7 @@ mypy = "^1.8.0"
 pytest = "^8.0.0"
 
 [tool.commitizen]
-version = "1.4.3"
+version = "1.4.4"
 tag_format = "$major.$minor.$patch"
 update_changelog_on_bump = true
 version_files = [
