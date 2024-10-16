@@ -114,30 +114,30 @@ def formatting_handler(record: dict[str, Any]) -> str:
 
     # Establish base values
     _level = record['level'].name
-    _extra = record.get('extra', {})
+    _extra = record.pop('extra', {})
     _msg = record.get('message', '')
     _exception = record.get('exception')
     _fmt = ''
 
     # Check if exception exists and should be shown
-    _show_time = bool(_extra.get('show_time', True))
-    _show_level = bool(_extra.get('show_level', True))
-    _show_location = bool(_extra.get('show_location', bool(_level in ['WARNING', 'ERROR', 'CRITICAL'])))
-    _show_message = bool(_extra.get('show_message', True))
+    _main_tags = _extra.pop('main_tags', [])
+    _show_time = bool(_extra.pop('show_time', True))
+    _show_level = bool(_extra.pop('show_level', True))
+    _show_message = bool(_extra.pop('show_message', True))
     _show_exception = bool(
-        _extra.get('show_exception', True) and
+        _extra.pop('show_exception', True) and
         hasattr(_exception, 'traceback') and
         _exception.traceback is not None)
 
     # Check for alternate separator
-    _sep = _extra.get('separator', ' <b>|</b> ')
+    _sep = _extra.pop('separator', ' <b>|</b> ')
 
     # Check for a continuation line
     terminator = '\n'
     if not _show_exception:
-        if bool(_extra.get('await_more', False)):
+        if bool(_extra.pop('await_more', False)):
             terminator = ''
-        if bool(_extra.get('add_more', False)):
+        if bool(_extra.pop('add_more', False)):
             return colorize_log_format(
                 COMPONENT_MESSAGE.replace('{message}', _msg),
                 _level
@@ -152,9 +152,8 @@ def formatting_handler(record: dict[str, Any]) -> str:
     def _wrap_main_tags(_log_fmt: str):
         """Wraps the log format in the main surrounding tags."""
         _L, _R = TAGS_DEFAULT
-        if _main_tags := _extra.get('main_tags'):
-            if isinstance(_main_tags, tuple) and len(_main_tags) == 2:
-                _L, _R = _main_tags
+        if _main_tags and isinstance(_main_tags, tuple) and len(_main_tags) == 2:
+            _L, _R = _main_tags
         return _L + _log_fmt + _R + terminator
 
     # Add time
@@ -164,14 +163,6 @@ def formatting_handler(record: dict[str, Any]) -> str:
     # Add level
     if _show_level:
         _fmt = _add_component(_fmt, COMPONENT_LEVEL)
-
-    # Add location
-    if _show_location:
-        _this_func = '' if '<' in (record.get('function') or '') else '.{function}'
-        _this_location = '{module}' + _this_func + '.{line}'
-        _component = COMPONENT_LOCATION.replace(
-            '{location}', _this_location)
-        _fmt = _add_component(_fmt, _component)
 
     # Add message
     if _show_message:
@@ -304,7 +295,7 @@ class LogResults:
                     self._on_failure = 'The following exception occurred:'
                 self._logger.exception(self._on_failure)
             elif self._on_failure:
-                self._logger.error(self._on_failure, show_location=False)
+                self._logger.error(self._on_failure)
             # Re-raise the exception
             return False if self._reraise else True
 
