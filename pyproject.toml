@@ -22,6 +22,10 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12"
 ]
+packages = [
+    {include = "omnitils"},
+    {include = "omnitils/py.typed"}
+]
 
 [tool.poetry.urls]
 "Changelog" = "https://github.com/Investigamer/omnitils/blob/main/CHANGELOG.md"
@@ -55,6 +59,7 @@ pytest = "^8.0.0"
 
 [tool.commitizen]
 version = "1.4.4"
+encoding = "utf-8"
 tag_format = "$major.$minor.$patch"
 update_changelog_on_bump = true
 version_files = [
