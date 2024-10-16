@@ -1,3 +1,9 @@
+## 1.4.5 (2024-10-16)
+
+### Fix
+
+- **logs**: Remove "location" by default, fix loguru incompatibility with extras passed
+
 ## 1.4.4 (2024-10-10)
 
 ### Fix
