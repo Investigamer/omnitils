@@ -1,3 +1,10 @@
+## 1.4.6 (2024-10-17)
+
+### Fix
+
+- **log**: No longer inject message during formatting step, ensure logger allows formatting tags by default
+- **github**: Ensure correct repository name is provided in the return Path when downloading a repository
+
 ## 1.4.5 (2024-10-16)
 
 ### Fix
