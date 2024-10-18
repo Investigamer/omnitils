@@ -181,6 +181,7 @@ def gh_download_repository(
     """
     # Establish base values
     temp_file = path / 'temp.zip'
+    _repo_name = f'{repo}-{branch}'
 
     # Download the archive
     temp_file = gh_download_file(
@@ -192,10 +193,13 @@ def gh_download_repository(
         handler=handler)
 
     # Extract files, remove temporary zip
-    with zipfile.ZipFile(temp_file, 'r') as zip_ref:
-        zip_ref.extractall(path=path)
+    with zipfile.ZipFile(temp_file, 'r') as zf:
+        _repo_names = zf.namelist()
+        if _repo_names:
+            _repo_name = _repo_names[0].split('/')[0]
+        zf.extractall(path=path)
     os.remove(temp_file)
-    return Path(path, f'{repo}-{branch}')
+    return Path(path, _repo_name)
 
 
 def gh_download_directory_files(
