@@ -138,10 +138,7 @@ def formatting_handler(record: dict[str, Any]) -> str:
         if bool(_extra.pop('await_more', False)):
             terminator = ''
         if bool(_extra.pop('add_more', False)):
-            return colorize_log_format(
-                COMPONENT_MESSAGE.replace('{message}', _msg),
-                _level
-            ) + terminator
+            return colorize_log_format(COMPONENT_MESSAGE, _level) + terminator
 
     def _add_component(_log_fmt, _component, _separator: Optional[str] = _sep) -> str:
         """Adds a component to a provided log format, with a separator."""
@@ -166,7 +163,7 @@ def formatting_handler(record: dict[str, Any]) -> str:
 
     # Add message
     if _show_message:
-        _fmt = _add_component(_fmt, COMPONENT_MESSAGE.replace('{message}', _msg))
+        _fmt = _add_component(_fmt, COMPONENT_MESSAGE)
 
     if _show_exception:
         _fmt = _add_component(_fmt, COMPONENT_EXCEPTION, '\n')
@@ -193,12 +190,15 @@ HANDLER_DEFAULT = dict(
 def reconfigure_logger(
     obj: Logger = logger,
     handlers: Optional[list[dict[str, Any]]] = None,
+    opt_args: Optional[dict[str, Any]] = None,
     **kwargs
 ) -> Logger:
     """Returns a configured loguru logger object."""
     if not handlers:
         handlers = [HANDLER_DEFAULT]
     obj.configure(handlers=handlers, **kwargs)
+    if opt_args is not None:
+        return obj.opt(**opt_args)
     return obj
 
 
@@ -350,4 +350,6 @@ def log_test_result(
 
 
 # Configure main logger object
-reconfigure_logger()
+logger = reconfigure_logger(
+    opt_args=dict(
+        colors=True))
