@@ -1,11 +1,22 @@
-[tool.poetry]
+[project]
 name = "omnitils"
 version = "1.4.6"
 description = "Universal reusable Python utils for the modern human."
-authors = ["Investigamer <hexproofsystems@gmail.com>"]
+authors = [{ name = "Investigamer", email = "freethoughtleft@gmail.com" }]
 license = "MPL-2.0"
 readme = "README.md"
-keywords = ["omnitils", "utilities", "utils", "files", "schema", "test", "benchmark", "enums", "logs", "investigamer"]
+keywords = [
+    "omnitils",
+    "utilities",
+    "utils",
+    "files",
+    "schema",
+    "test",
+    "benchmark",
+    "enums",
+    "logs",
+    "investigamer",
+]
 classifiers = [
     # Development status
     "Development Status :: 4 - Beta",
@@ -20,12 +31,12 @@ classifiers = [
     # Supported Python versions
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12"
+    "Programming Language :: Python :: 3.12",
 ]
-packages = [
-    {include = "omnitils"},
-    {include = "omnitils/py.typed"}
-]
+requires-python = ">=3.10,<4.0"
+
+[tool.poetry]
+packages = [{ include = "omnitils" }, { include = "omnitils/py.typed" }]
 
 [tool.poetry.urls]
 "Changelog" = "https://github.com/Investigamer/omnitils/blob/main/CHANGELOG.md"
@@ -35,37 +46,33 @@ packages = [
 "Sponsor" = "https://patreon.com/mpcfill"
 
 [tool.poetry.dependencies]
-python = ">=3.10,<3.13"
-requests = "^2.32.3"
-PyYAML = "^6.0.1"
-yarl = "^1.9.4"
-tomlkit = "^0.13.2"
-pillow = "^10.4.0"
+requests = "^2.32.4"
+PyYAML = "^6.0.2"
+yarl = "^1.20.1"
+tomlkit = "^0.13.3"
+pillow = "^11.3.0"
 ratelimit = "^2.2.1"
 backoff = "^2.2.1"
-pathvalidate = "^3.2.0"
-py7zr = "^0.22.0"
-tqdm = "^4.66.1"
-tomli = "^2.0.1"
-pydantic = "^2.9.2"
-loguru = "^0.7.2"
-click = "^8.1.7"
+pathvalidate = "^3.3.1"
+py7zr = "^1.0.0"
+tqdm = "^4.67.1"
+tomli = "^2.2.1"
+pydantic = "^2.11.7"
+loguru = "^0.7.3"
+click = "^8.2.1"
 python-dateutil = "^2.9.0.post0"
 
 [tool.poetry.group.dev.dependencies]
-commitizen = "^3.25.0"
-mypy = "^1.8.0"
-pytest = "^8.0.0"
+commitizen = "^4.8.3"
+mypy = "^1.17.1"
+pytest = "^8.4.1"
 
 [tool.commitizen]
-version = "1.4.6"
+version_provider = "pep621"
 encoding = "utf-8"
 tag_format = "$major.$minor.$patch"
 update_changelog_on_bump = true
-version_files = [
-    "pyproject.toml:version",
-    "omnitils/__init__.py:__version__"
-]
+version_files = ["pyproject.toml:version", "omnitils/__init__.py:__version__"]
 
 [build-system]
 requires = ["poetry-core"]
