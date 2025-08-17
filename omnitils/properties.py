@@ -4,8 +4,14 @@
 * Copyright (c) Hexproof Systems <hexproofsystems@gmail.com>
 * LICENSE: Mozilla Public License 2.0
 """
-from typing import Callable
+from typing import Callable, Generic, ParamSpec, Protocol, TypeVar
 
+class SupportsChangeTracking(Protocol):
+    _changes: set[str]
+
+T = TypeVar("T")
+C = TypeVar("C", bound=SupportsChangeTracking)
+P = ParamSpec("P")
 
 """
 * Func Based Properties
@@ -68,7 +74,7 @@ def default_prop(func: Callable) -> property:
 """
 
 
-class tracked_prop:
+class tracked_prop(Generic[T,C]):
     """A property which can be tracked for changes in the `_changes` attribute of the parent object.
 
     Notes:
@@ -76,17 +82,17 @@ class tracked_prop:
             an empty set, e.g. `_changes = set()`.
     """
 
-    def __init__(self, getter):
+    def __init__(self, getter: Callable[[C],T]):
         """Initializes the property.
 
         Args:
             getter: Decorated method which acts as a getter for the property's default value.
         """
-        self.getter = getter
-        self._value = None
-        self._name = None
+        self.getter: Callable[[C],T] = getter
+        self._value: T | None = None
+        self._name: str | None = None
 
-    def __get__(self, instance, owner):
+    def __get__(self, instance: C, owner: type[C]) -> T:
         """Either sets and returns the default value or returns the cached value.
 
         Args:
@@ -100,7 +106,7 @@ class tracked_prop:
             self._value = self.getter(instance)
         return self._value
 
-    def __set__(self, instance, value) -> None:
+    def __set__(self, instance: C, value: T) -> None:
         """Sets a new cached value for the decorated property and adds it to changes.
 
         Args:
@@ -108,11 +114,11 @@ class tracked_prop:
             value: Value to set for the cached property.
         """
         self._value = value
-        instance._changes.add(self._name)
-        return
+        if self._name is not None:
+            instance._changes.add(self._name) # pyright: ignore[reportPrivateUsage]
 
-    def __call__(self, func):
-        """Called when decorator is used aas a function.
+    def __call__(self, func: Callable[[C],T]):
+        """Called when decorator is used as a function.
 
         Args:
             func: Function to be decorated.
@@ -123,7 +129,7 @@ class tracked_prop:
         self.getter = func
         return self
 
-    def __set_name__(self, owner, name) -> None:
+    def __set_name__(self, owner: type[C], name: str) -> None:
         """Sets the name of the decorated property.
 
         Args:
@@ -132,7 +138,7 @@ class tracked_prop:
         """
         self._name = name
 
-    def __delete__(self, owner):
+    def __delete__(self, owner: type[C]):
         """Clears the cached value of the decorated property.
 
         Args:

@@ -4,10 +4,11 @@
 * Copyright (c) Hexproof Systems <hexproofsystems@gmail.com>
 * LICENSE: Mozilla Public License 2.0
 """
+
 # Standard Library Imports
 import os
 from contextlib import suppress
-from typing import Union, Callable, Optional
+from typing import MutableMapping, Union, Callable, Optional
 
 # Third Party Imports
 import requests
@@ -25,8 +26,8 @@ from omnitils.fetch._core import request_header_default, chunk_size_default
 
 
 def check_resume_file(
-    path: Union[str, os.PathLike],
-    headers: dict[str] | CaseInsensitiveDict[str]
+    path: Union[str, os.PathLike[str]],
+    headers: MutableMapping[str, str] | CaseInsensitiveDict[str],
 ) -> bool:
     """Checks if a file download can be resumed by looking at the file and headers.
 
@@ -38,11 +39,11 @@ def check_resume_file(
         True if resuming, otherwise False.
     """
     # Check for a range header with bytes spec
-    if headers.get('Range') is not None and os.path.exists(path):
-        if 'bytes=' in headers['Range']:
+    if headers.get("Range") is not None and os.path.exists(path):
+        if "bytes=" in headers["Range"]:
             try:
                 # Check that range and size is equivalent
-                status = headers['Range'][6:].split('-')[0]
+                status = headers["Range"][6:].split("-")[0]
                 if int(status) == os.path.getsize(path):
                     return True
             except (IndexError, KeyError, TypeError):
@@ -60,12 +61,11 @@ def estimate_content_length(response: Response, default: int = 0) -> int:
     Returns:
         Content-Length value from Response headers.
     """
-    total = response.headers.get('Content-Length', default)
+    total = response.headers.get("Content-Length", default)
     with suppress(Exception):
         if isinstance(total, str):
-            total = int(''.join(n for n in total if n.isdigit()) or default)
-        if isinstance(total, int):
-            return total
+            total = int("".join(n for n in total if n.isdigit()) or default)
+        return int(total)
     return default
 
 
@@ -76,11 +76,11 @@ def estimate_content_length(response: Response, default: int = 0) -> int:
 
 def download_file(
     url: Union[str, URL],
-    path: Union[str, os.PathLike],
-    header: Optional[dict] = None,
-    callback: Optional[Callable] = None,
+    path: Union[str, os.PathLike[str]],
+    header: Optional[MutableMapping[str, str]] = None,
+    callback: Optional[Callable[[int, int], None]] = None,
     chunk_size: int = chunk_size_default,
-) -> Union[str, os.PathLike]:
+) -> Union[str, os.PathLike[str]]:
     """Download a file in chunks from url and save to path, executing a callback
         after each chunk if provided.
 
@@ -101,8 +101,8 @@ def download_file(
     """
     has_callback = callback is not None
     header = header or request_header_default.copy()
-    write_mode = 'ab' if check_resume_file(path, header) else 'wb'
-    with requests.get(url, headers=header, stream=True) as r:
+    write_mode = "ab" if check_resume_file(path, header) else "wb"
+    with requests.get(str(url), headers=header, stream=True) as r:
         r.raise_for_status()
 
         # Get file size total
@@ -112,7 +112,7 @@ def download_file(
         with open(path, write_mode) as f:
             for chunk in r.iter_content(chunk_size=chunk_size):
                 if not chunk:
-                    raise OSError('Bad chunk detected, likely a truncated stream!')
+                    raise OSError("Bad chunk detected, likely a truncated stream!")
                 f.write(chunk)
 
                 # Execute callback if provided
@@ -126,10 +126,10 @@ def download_file(
 
 def download_file_from_response(
     response: Response,
-    path: Union[str, os.PathLike],
+    path: Union[str, os.PathLike[str]],
     callback: Optional[Callable[[int, int], None]] = None,
     chunk_size: int = chunk_size_default,
-) -> Union[str, os.PathLike]:
+) -> Union[str, os.PathLike[str]]:
     """Download a file in chunks using a given Request and optional Session, executing a callback
         after each chunk if provided.
 
@@ -152,14 +152,14 @@ def download_file_from_response(
 
     # Get file size total
     total = estimate_content_length(response) if has_callback else 0
-    write_mode = 'ab' if check_resume_file(path, response.headers) else 'wb'
+    write_mode = "ab" if check_resume_file(path, response.headers) else "wb"
 
     # Write the file in chunks
     with open(path, write_mode) as f:
         for chunk in response.iter_content(chunk_size=chunk_size):
             # Check for bad chunks
             if not chunk:
-                raise OSError('Bad chunk detected, likely a truncated stream!')
+                raise OSError("Bad chunk detected, likely a truncated stream!")
             f.write(chunk)
 
             # Execute callback if provided
