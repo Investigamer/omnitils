@@ -227,4 +227,4 @@ def get_project_version(path: Path) -> str:
         OSError: If project file fails to load.
     """
     project = load_data_file(path)
-    return project.get("tool", {}).get("poetry", {}).get("version", "1.0.0")
+    return project.get("project", {}).get("version", "1.0.0")
