@@ -4,27 +4,29 @@
 * Copyright (c) Hexproof Systems <hexproofsystems@gmail.com>
 * LICENSE: Mozilla Public License 2.0
 """
-# Standard Library Imports
 import os
 import zipfile
 from logging import getLogger
 from pathlib import Path
+from typing import Callable, Optional, Union
+
 import requests
-from typing import Optional, Union, Callable
-
-# Third Party Imports
 import yarl
-from backoff import on_exception, expo
-from ratelimit import RateLimitDecorator, sleep_and_retry
+from backoff import expo, on_exception
+from limits import RateLimitItemPerHour
+from limits.storage import MemoryStorage
+from limits.strategies import MovingWindowRateLimiter
 
-# Local Imports
 from omnitils.fetch import download_file
+from omnitils.fetch._core import chunk_size_default, request_header_default
 from omnitils.files.folders import mkdir_full_perms
-from omnitils.fetch._core import request_header_default, chunk_size_default
+from omnitils.rate_limit import rate_limit
 
 # Rate limiter to safely limit GitHub requests
-github_rate_limit = RateLimitDecorator(calls=60, period=3600)
-github_rate_limit_authenticated = RateLimitDecorator(calls=7, period=5)
+_rate_limit_storage = MemoryStorage()
+_rate_limiter = MovingWindowRateLimiter(_rate_limit_storage)
+_github_rate_limit = RateLimitItemPerHour(60)
+_github_rate_limit_authenticated = RateLimitItemPerHour(5000)
 
 """
 * Handlers
@@ -34,8 +36,7 @@ github_rate_limit_authenticated = RateLimitDecorator(calls=7, period=5)
 def gh_request_handler(func) -> Callable:
     """Wrapper for a GitHub request function to handle retries and rate limits on
     unauthenticated requests (60 per hour)."""
-    @sleep_and_retry
-    @github_rate_limit
+    @rate_limit(limiter=_rate_limiter, limit=_github_rate_limit)
     @on_exception(expo, requests.exceptions.RequestException, max_tries=2, max_time=1)
     def decorator(*args, **kwargs):
         return func(*args, **kwargs)
@@ -46,7 +47,7 @@ def gh_request_handler_authenticated(func) -> Callable:
     """Wrapper for a GitHub request function to handle retries and rate limits on
     authenticated requests (5000 per hour)."""
     @sleep_and_retry
-    @github_rate_limit_authenticated
+    @rate_limit(limiter=_rate_limiter, limit=_github_rate_limit_authenticated)
     @on_exception(expo, requests.exceptions.RequestException, max_tries=2, max_time=1)
     def decorator(*args, **kwargs):
         return func(*args, **kwargs)

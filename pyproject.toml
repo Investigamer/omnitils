@@ -32,6 +32,7 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
 ]
 requires-python = ">=3.10,<4.0"
 
@@ -46,12 +47,12 @@ packages = [{ include = "omnitils" }, { include = "omnitils/py.typed" }]
 "Sponsor" = "https://patreon.com/mpcfill"
 
 [tool.poetry.dependencies]
-requests = "^2.32.4"
-PyYAML = "^6.0.2"
-yarl = "^1.20.1"
+requests = "^2.32.5"
+PyYAML = "^6.0.3"
+yarl = "^1.22.0"
 tomlkit = "^0.13.3"
 pillow = "^11.3.0"
-ratelimit = "^2.2.1"
+limits = "^5.6.0"
 backoff = "^2.2.1"
 pathvalidate = "^3.3.1"
 py7zr = "^1.0.0"
@@ -59,13 +60,13 @@ tqdm = "^4.67.1"
 tomli = "^2.2.1"
 pydantic = "^2.11.7"
 loguru = "^0.7.3"
-click = "^8.2.1"
+click = "^8.3.0"
 python-dateutil = "^2.9.0.post0"
 
 [tool.poetry.group.dev.dependencies]
-commitizen = "^4.8.3"
-mypy = "^1.17.1"
-pytest = "^8.4.1"
+commitizen = "^4.9.1"
+mypy = "^1.18.2"
+pytest = "^8.4.2"
 
 [tool.commitizen]
 version_provider = "pep621"
@@ -77,3 +78,7 @@ version_files = ["pyproject.toml:version", "omnitils/__init__.py:__version__"]
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.pyright]
+typeCheckingMode = "strict"
+reportMissingTypeStubs = "information"
