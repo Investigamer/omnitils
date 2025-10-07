@@ -22,7 +22,7 @@ def rate_limit(
     """Decorator for rate_limiting function calls.
 
     Args:
-        strategy: Limiting strategy.
+        limiter: Limiting strategy.
         limit: The limit, e.g, 10 calls per second.
         reschedule: How long to sleep in seconds before reattempting. Pass 0 to raise `RateLimitError` instead when limit is exceeded.
         identifier: Identifiers that can be used to separate this limit from oters.
