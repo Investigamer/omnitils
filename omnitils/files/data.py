@@ -4,11 +4,20 @@
 * Copyright (c) Hexproof Systems <hexproofsystems@gmail.com>
 * LICENSE: Mozilla Public License 2.0
 """
+
 # Standard Library Imports
 import json
 from contextlib import suppress
 from pathlib import Path
-from typing import Optional, TypedDict, Callable, Union
+from typing import (
+    IO,
+    Any,
+    Literal,
+    ParamSpec,
+    TypeVar,
+    TypedDict,
+    Callable,
+)
 from threading import Lock
 
 # Third Party Imports
@@ -16,52 +25,56 @@ from yaml import (
     load as yaml_load,
     dump as yaml_dump,
     Loader as yamlLoader,
-    Dumper as yamlDumper)
+    Dumper as yamlDumper,
+)
 from tomlkit import dump as toml_dump, load as toml_load
 
 """
 * Types
 """
 
+T = TypeVar("T")
+PL = ParamSpec("PL")
+PD = ParamSpec("PD")
 
-class DataFileType (TypedDict):
+
+# TODO Switch to an approach that is properly type annotateable with ParamSpecs.
+# That likely means scrapping the DataFileType dict and doing something more functional
+# possibly by utilizing decorators.
+class DataFileType(TypedDict):
     """Data file type (json, toml, yaml, etc)."""
-    load: Callable
-    dump: Callable
-    load_kw: dict[str, Union[Callable, bool, str]]
-    dump_kw: dict[str, Union[Callable, bool, str]]
+
+    load: Callable[[IO[str] | IO[bytes]], Any]
+    dump: Callable[[Any, IO[str]], None]
+    load_kw: dict[str, Any]
+    dump_kw: dict[str, Any]
 
 
 """Data File: TOML (.toml) data type."""
 DataFileTOML = DataFileType(
-    load=toml_load,
-    dump=toml_dump,
-    load_kw={},
-    dump_kw={'sort_keys': True})
+    load=toml_load, dump=toml_dump, load_kw={}, dump_kw={"sort_keys": True}
+)
 
 """Data File: YAML (.yaml) data type."""
 DataFileYAML = DataFileType(
     load=yaml_load,
     dump=yaml_dump,
-    load_kw={
-        'Loader': yamlLoader},
+    load_kw={"Loader": yamlLoader},
     dump_kw={
-        'allow_unicode': True,
-        'Dumper': yamlDumper,
-        'sort_keys': True,
-        'indent': 2,
-    })
+        "allow_unicode": True,
+        "Dumper": yamlDumper,
+        "sort_keys": True,
+        "indent": 2,
+    },
+)
 
 """Data File: JSON (.json) data type."""
 DataFileJSON = DataFileType(
     load=json.load,
     dump=json.dump,
     load_kw={},
-    dump_kw={
-        'sort_keys': True,
-        'indent': 2,
-        'ensure_ascii': False
-    })
+    dump_kw={"sort_keys": True, "indent": 2, "ensure_ascii": False},
+)
 
 
 """
@@ -71,21 +84,23 @@ DataFileJSON = DataFileType(
 # File util locking mechanism
 util_file_lock = Lock()
 
+SupportedDataSuffixes = Literal[".json", ".toml", ".yaml", ".yml"]
+
 # Data types alias map
-data_types: dict[str, DataFileType] = {
-    '.toml': DataFileTOML,
-    '.yaml': DataFileYAML,
-    '.yml': DataFileYAML,
-    '.json': DataFileJSON,
+data_types: dict[SupportedDataSuffixes, DataFileType] = {
+    ".toml": DataFileTOML,
+    ".yaml": DataFileYAML,
+    ".yml": DataFileYAML,
+    ".json": DataFileJSON,
 }
-supported_data_types = tuple(data_types.keys())
+supported_data_types = (".json", ".toml", ".yaml", ".yml")
 
 """
 * Funcs
 """
 
 
-def validate_data_type(path: Path) -> None:
+def validate_data_type(path: Path) -> SupportedDataSuffixes:
     """Checks if a data file matches a supported data file type.
 
     Args:
@@ -95,13 +110,16 @@ def validate_data_type(path: Path) -> None:
         ValueError: If data file type not supported.
     """
     # Check if data file is a supported data type
-    if path.suffix.lower() not in supported_data_types:
-        raise ValueError("Data file provided does not match a supported data file type.\n"
-                         f"Types supported: {', '.join(supported_data_types)}\n"
-                         f"Type received: {path.suffix}")
+    if (suffix := path.suffix.lower()) not in supported_data_types:
+        raise ValueError(
+            "Data file provided does not match a supported data file type.\n"
+            f"Types supported: {', '.join(supported_data_types)}\n"
+            f"Type received: {path.suffix}"
+        )
+    return suffix
 
 
-def validate_data_file(path: Path) -> None:
+def validate_data_file(path: Path) -> SupportedDataSuffixes:
     """Checks if a data file exists and is a valid data file type. Raises an exception if validation fails.
 
     Args:
@@ -114,13 +132,10 @@ def validate_data_file(path: Path) -> None:
     # Check if file exists
     if not path.is_file():
         raise FileNotFoundError(f"Data file does not exist:\n{str(path)}")
-    validate_data_type(path)
+    return validate_data_type(path)
 
 
-def load_data_file(
-    path: Path,
-    config: Optional[dict] = None
-) -> Union[list, dict, tuple, set]:
+def load_data_file(path: Path, config: dict[str, Any] | None = None) -> Any:
     """Load data  object from a data file.
 
     Args:
@@ -128,7 +143,7 @@ def load_data_file(
         config: Dict data to modify DataFileType configuration for this data load procedure.
 
     Returns:
-        Data object such as dict, list, tuple, set, etc.
+        Any value that is parseable from JSON, TOML or YAML.
 
     Raises:
         FileNotFoundError: If data file does not exist.
@@ -136,29 +151,32 @@ def load_data_file(
         OSError: If loading data file fails.
     """
     # Check if data file is valid
-    validate_data_file(path)
+    suffix = validate_data_file(path)
 
     # Pull the parser and insert user config into kwargs
-    parser: DataFileType = data_types.get(path.suffix.lower(), {}).copy()
-    if config:
-        parser['load_kw'].update(config)
+    if parser := data_types.get(suffix):
+        if config:
+            parser: DataFileType | None = {
+                **parser,
+                "load_kw": {**parser["dump_kw"], **config},
+            }
 
-    # Attempt to load data
-    with util_file_lock, suppress(Exception), open(path, 'r', encoding='utf-8') as f:
-        data = parser['load'](f, **parser['load_kw']) or {}
-        return data
-    raise OSError(f"Unable to load data from data file:\n{str(path)}")
+        # Attempt to load data
+        with (
+            util_file_lock,
+            suppress(Exception),
+            open(path, "r", encoding="utf-8") as f,
+        ):
+            data = parser["load"](f, **parser["load_kw"])
+            return data
+        raise OSError(f"Unable to load data from data file:\n{str(path)}")
 
 
-def dump_data_file(
-    obj: Union[list, dict, tuple, set],
-    path: Path,
-    config: Optional[dict] = None
-) -> None:
+def dump_data_file(obj: Any, path: Path, config: dict[str, Any] | None = None) -> None:
     """Dump data object to a data file.
 
     Args:
-        obj: Iterable or dict object to save to data file.
+        obj: Any value that is serializable to JSON, TOML or YAML.
         path: Path to the data file to be dumped.
         config: Dict data to modify DataFileType configuration for this data dump procedure.
 
@@ -168,18 +186,25 @@ def dump_data_file(
         OSError: If dumping to data file fails.
     """
     # Check if data file is valid
-    validate_data_type(path)
+    suffix = validate_data_type(path)
 
     # Pull the parser and insert user config into kwargs
-    parser: DataFileType = data_types.get(path.suffix.lower(), {}).copy()
-    if config:
-        parser['dump_kw'].update(config)
+    if parser := data_types.get(suffix):
+        if config:
+            parser: DataFileType | None = {
+                **parser,
+                "load_kw": {**parser["dump_kw"], **config},
+            }
 
-    # Attempt to dump data
-    with suppress(Exception), util_file_lock, open(path, 'w', encoding='utf-8') as f:
-        parser['dump'](obj, f, **parser['dump_kw'])
-        return
-    raise OSError(f"Unable to dump data to data file:\n{str(path)}")
+        # Attempt to dump data
+        with (
+            suppress(Exception),
+            util_file_lock,
+            open(path, "w", encoding="utf-8") as f,
+        ):
+            parser["dump"](obj, f, **parser["dump_kw"])
+            return
+        raise OSError(f"Unable to dump data to data file:\n{str(path)}")
 
 
 """
@@ -202,4 +227,4 @@ def get_project_version(path: Path) -> str:
         OSError: If project file fails to load.
     """
     project = load_data_file(path)
-    return project.get('tool', {}).get('poetry', {}).get('version', '1.0.0')
+    return project.get("project", {}).get("version", "1.0.0")

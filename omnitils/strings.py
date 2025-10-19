@@ -9,7 +9,7 @@ import codecs
 from datetime import datetime
 import html
 import string
-from typing import Optional, Union
+from typing import Optional, Union, overload
 import unicodedata
 from urllib import parse
 
@@ -184,6 +184,11 @@ def decode_url(url: str) -> yarl.URL:
 * Multiline Utils
 """
 
+@overload
+def is_multiline(text: str) -> bool: ...
+
+@overload
+def is_multiline(text: list[str]) -> list[bool]: ...
 
 def is_multiline(text: Union[str, list[str]]) -> Union[bool, list[bool]]:
     """Check if text or list of texts given contains multiline text (a newline character).
@@ -200,11 +205,8 @@ def is_multiline(text: Union[str, list[str]]) -> Union[bool, list[bool]]:
             return True
         return False
     # List Given
-    if isinstance(text, list):
+    else:
         return [bool('\n' in t or '\r' in t) for t in text]
-    # Invalid data type provided
-    raise Exception("Invalid type passed to 'is_multiline', can only accept a string or list of strings.\n"
-                    f"Value received: {text}")
 
 
 def strip_lines(text: str, num: int, sep: str = '\n') -> str:
