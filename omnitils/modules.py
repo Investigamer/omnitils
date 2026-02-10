@@ -1,10 +1,9 @@
 """
 * Module Utilities
 * General utilities for dynamically loading and managing Python modules.
-* Copyright (c) Hexproof Systems <hexproofsystems@gmail.com>
+* Copyright (c) Hexproof Systems <dev@hexproof.io>
 * LICENSE: Mozilla Public License 2.0
 """
-# Standard Library Imports
 import importlib
 import os
 from importlib.util import spec_from_file_location, module_from_spec
@@ -17,7 +16,7 @@ from typing import Union, Optional
 * Types
 """
 
-ModuleTree = dict[str, Union[ModuleType, 'ModuleTree']]
+ModuleTree = dict[str, ModuleType | 'ModuleTree']
 
 """
 * Sys Utils
@@ -83,7 +82,7 @@ def import_package(name: str, path: Path, hotswap: bool = False) -> Optional[Mod
     init_module = path / '__init__.py'
     if not init_module.is_file():
         remove_python_path(str(path))
-        return
+        return None
 
     # Import and execute the init module
     module = import_module_from_path(name=name, path=init_module, hotswap=hotswap)
@@ -118,7 +117,7 @@ def import_nested_modules(
         A dictionary tree of modules imported.
     """
     ignored = ignored or []
-    imported = {name: []}
+    imported: ModuleTree = {}
     for item in os.listdir(path):
         if item in ['__pycache__', *ignored]:
             continue
@@ -131,10 +130,10 @@ def import_nested_modules(
         if p.is_dir() and recursive:
             # Import directory
             add_python_path(str(p))
-            module = import_nested_modules(
+            modules = import_nested_modules(
                 name=n, path=p, hotswap=hotswap, ignored=ignored)
-            if module:
-                imported[n] = module
+            if modules:
+                imported[n] = modules
             remove_python_path(str(p))
         elif p.is_file() and p.suffix == '.py':
             # Import module
