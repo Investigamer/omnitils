@@ -1,10 +1,11 @@
-[tool.poetry]
+[project]
 name = "omnitils"
 version = "1.4.6"
 description = "Universal reusable Python utils for the modern human."
-authors = ["Investigamer <hexproofsystems@gmail.com>"]
+authors = [{ name = "Investigamer", email = "dev@hexproof.io" }]
 license = "MPL-2.0"
 readme = "README.md"
+requires-python = ">=3.10,<3.15"
 keywords = ["omnitils", "utilities", "utils", "files", "schema", "test", "benchmark", "enums", "logs", "investigamer"]
 classifiers = [
     # Development status
@@ -20,53 +21,62 @@ classifiers = [
     # Supported Python versions
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12"
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14"
 ]
-packages = [
-    {include = "omnitils"},
-    {include = "omnitils/py.typed"}
+dependencies = [
+    "requests>=2.32.4,<3",
+    "PyYAML>=6.0.1,<7",
+    "yarl>=1.9.4,<2",
+    "tomlkit>=0.13.2,<1",
+    "pillow>=12.1.0,<13",
+    "ratelimit>=2.2.1,<3",
+    "backoff>=2.2.1,<3",
+    "pathvalidate>=3.2.0,<4",
+    "py7zr>=1.1.0,<2",
+    "tqdm>=4.66.1,<5",
+    "tomli>=2.0.1,<3",
+    "pydantic>=2.9.2,<3",
+    "loguru>=0.7.2,<0.8",
+    "click>=8.1.7,<9",
+    "python-dateutil>=2.9.0.post0,<3",
+    "limits>=5.8.0",
+    "typer>=0.20.1,<1"
 ]
 
-[tool.poetry.urls]
-"Changelog" = "https://github.com/Investigamer/omnitils/blob/main/CHANGELOG.md"
-"Discord" = "https://discord.gg/magicproxies"
-"Issues" = "https://github.com/Investigamer/omnitils/issues"
-"Source" = "https://github.com/Investigamer/omnitils"
-"Sponsor" = "https://patreon.com/mpcfill"
+[project.optional-dependencies]
+dev = [
+    "mypy>=1.19.1,<2",
+    "pytest>=9.0.1,<10",
+    "commitizen>=4.13.1,<5"
+]
 
-[tool.poetry.dependencies]
-python = ">=3.10,<3.13"
-requests = "^2.32.3"
-PyYAML = "^6.0.1"
-yarl = "^1.9.4"
-tomlkit = "^0.13.2"
-pillow = "^10.4.0"
-ratelimit = "^2.2.1"
-backoff = "^2.2.1"
-pathvalidate = "^3.2.0"
-py7zr = "^0.22.0"
-tqdm = "^4.66.1"
-tomli = "^2.0.1"
-pydantic = "^2.9.2"
-loguru = "^0.7.2"
-click = "^8.1.7"
-python-dateutil = "^2.9.0.post0"
+[project.urls]
+Changelog = "https://github.com/Investigamer/omnitils/blob/main/CHANGELOG.md"
+Discord = "https://discord.gg/magicproxies"
+Issues = "https://github.com/Investigamer/omnitils/issues"
+Source = "https://github.com/Investigamer/omnitils"
+Sponsor = "https://patreon.com/mpcfill"
 
-[tool.poetry.group.dev.dependencies]
-commitizen = "^3.25.0"
-mypy = "^1.8.0"
-pytest = "^8.0.0"
+[project.scripts]
+hooks-cz = 'hooks.commitizen:hooks'
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["omnitils"]
 
 [tool.commitizen]
-version = "1.4.6"
+version_provider = "pep621"
 encoding = "utf-8"
 tag_format = "$major.$minor.$patch"
 update_changelog_on_bump = true
 version_files = [
-    "pyproject.toml:version",
     "omnitils/__init__.py:__version__"
 ]
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+pre_bump_hooks = [
+    "uv run hooks-cz pre-bump"
+]

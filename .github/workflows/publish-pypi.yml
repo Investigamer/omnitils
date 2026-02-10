@@ -6,71 +6,75 @@ on:
       - '*.*.*'
   workflow_dispatch:
 
-env:
-  PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
-  GITHUB_TOKEN: ${{ secrets.GH_AUTH_TOKEN }}
+# Prevent overlapping publishes if tags get pushed in quick succession.
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
-  build-and-publish:
+  release:
+    name: Build, Release, Publish
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+    environment: pypi
+
     steps:
+      # Checkout repository
+      - name: Checkout (full history + tags)
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
 
-    # Checkout Repo
-    - uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
+      # Validate tag format, save as ENV
+      - name: Validate tag format (x.y.z)
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAG="${GITHUB_REF_NAME}"
+          if [[ ! "$TAG" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "This workflow only runs for tags like x.y.z. Got: $TAG"
+            exit 1
+          fi
 
-    # Setup Python
-    - name: Setup Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.12'
+      # Set-up Python 3.12 (uv)
+      - name: Setup uv (Python 3.12 + cache)
+        uses: astral-sh/setup-uv@v7
+        with:
+          python-version: "3.12"
+          enable-cache: true
 
-    # Install Poetry
-    - name: Install Poetry
-      run: |
-        python -m pip install pipx
-        pipx ensurepath
-        pipx install poetry
+      # Sync dependencies (with dev)
+      - name: Sync Dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          uv sync --extra dev
+          uv lock
 
-    # Cache Poetry
-    - name: Setup Poetry Cache
-      uses: actions/cache@v3
-      with:
-        path: ~/.cache/pypoetry/virtualenvs
-        key: ${{ runner.os }}-poetry-${{ hashFiles('**/poetry.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-poetry-
+      # Generate a Release on GitHub, insert release notes from cz
+      - name: Create GitHub Release (body from release_notes.md)
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          TAG="${GITHUB_REF_NAME}"
+          NOTES="$(uv run cz changelog "$TAG" --dry-run)"
+          gh release create "$TAG" --title "$TAG" --notes "$NOTES"
 
-    # Install dependencies
-    - name: Install Deps
-      run: poetry install --with dev
+      # Sync without dev and build
+      - name: Build Release
+        shell: bash
+        run: |
+          set -euo pipefail
+          uv sync --locked
+          uv build
 
-    # Get Version Tag
-    - name: Set up version
-      id: latest_version
-      run: |
-        echo "VERSION_TAG=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
-
-    # Generate Incremental Changelog
-    - name: Generate Incremental Changelog
-      run: |
-        poetry run cz changelog $VERSION_TAG --file-name="release_notes.md"
-
-    # Publish to PyPi
-    - name: Publish to PyPI
-      run: |
-        poetry config pypi-token.pypi $PYPI_TOKEN
-        poetry publish --build
-
-    # Create Release
-    - name: Create Release
-      uses: softprops/action-gh-release@v2
-      with:
-        body_path: release_notes.md
-        tag_name: ${{ env.VERSION_TAG }}
-        token: ${{ env.GITHUB_TOKEN }}
-
-    # Clean up
-    - name: Clean up
-      run: rm release_notes.md
+      # Publish to PyPi
+      - name: Publish to PyPI (Trusted Publishing)
+        shell: bash
+        run: |
+          set -euo pipefail
+          uv publish
