@@ -1,21 +1,18 @@
 """
 * Download Utilities
 * Generalized utilities for downloading files.
-* Copyright (c) Hexproof Systems <hexproofsystems@gmail.com>
+* Copyright (c) Hexproof Systems <dev@hexproof.io>
 * LICENSE: Mozilla Public License 2.0
 """
-# Standard Library Imports
 import os
 from contextlib import suppress
-from typing import Union, Callable, Optional
+from typing import Union, Callable, Optional, Any
 
-# Third Party Imports
 import requests
 from requests import Response
 from requests.structures import CaseInsensitiveDict
 from yarl import URL
 
-# Local Imports
 from omnitils.fetch._core import request_header_default, chunk_size_default
 
 
@@ -26,7 +23,7 @@ from omnitils.fetch._core import request_header_default, chunk_size_default
 
 def check_resume_file(
     path: Union[str, os.PathLike],
-    headers: dict[str] | CaseInsensitiveDict[str]
+    headers: dict[str, Any] | CaseInsensitiveDict[str]
 ) -> bool:
     """Checks if a file download can be resumed by looking at the file and headers.
 
