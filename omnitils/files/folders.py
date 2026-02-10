@@ -1,10 +1,9 @@
 """
 * Folder Utilities
 * Generalized utilities for working with folders/directories.
-* Copyright (c) Hexproof Systems <hexproofsystems@gmail.com>
+* Copyright (c) Hexproof Systems <dev@hexproof.io>
 * LICENSE: Mozilla Public License 2.0
 """
-# Standard Library Imports
 import os
 import random
 import shutil

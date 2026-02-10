@@ -1,7 +1,6 @@
 """
 * Utils: Compressing and Decompressing Archives
 """
-# Standard Library
 import bz2
 from contextlib import suppress
 import gzip
@@ -16,13 +15,11 @@ from threading import Lock
 from typing import Optional, Callable
 import zipfile
 
-# Third Party Imports
 from loguru import logger
 from tqdm import tqdm
 import py7zr
 from py7zr import SevenZipFile, FILTER_LZMA, FILTER_X86
 
-# Local Imports
 from omnitils.enums import StrConstant
 from omnitils.strings import str_to_bool_safe
 
@@ -41,10 +38,11 @@ class ArchType(StrConstant):
     XZip = '.xz'
     BZip2 = '.bz2'
     SevenZip = '.7z'
+    Tar = ".tar"
     TarGZip = '.tar.gz'
     TarXZip = '.tar.xz'
     TarBZip2 = '.tar.bz2'
-    TarSevenZip = '.tar.xz'
+    TarSevenZip = '.tar.7z'
 
 
 class WordSize(StrConstant):
@@ -60,6 +58,7 @@ class WordSize(StrConstant):
 
 class DictionarySize(StrConstant):
     """Dictionary Size for 7z compression."""
+    DS16 = "16"
     DS32 = "32"
     DS48 = "48"
     DS64 = "64"
@@ -83,7 +82,7 @@ def compress_7z_py(
     path_in: Path,
     path_out: Optional[Path] = None,
     filters: Optional[list[dict[str, int]]] = None
-) -> Optional[Path]:
+) -> Path | None:
     """Compress a target file to a target 7z archive using the py7zr module.
 
     Args:
@@ -103,11 +102,11 @@ def compress_7z_py(
 def compress_7z_7zip(
     path_in: Path,
     path_out: Optional[Path] = None,
-    compress_level: int = 9,
+    compress_level: int = 7,
     word_size: WordSize = WordSize.WS16,
     dict_size: DictionarySize = DictionarySize.DS1536,
 
-) -> Optional[Path]:
+) -> Path | None:
     """Compress a target file to a target 7z archive using the 7-Zip CLI.
 
     Notes:
@@ -117,7 +116,7 @@ def compress_7z_7zip(
     Args:
         path_in: File to compress.
         path_out: Path to the archive to be saved. Use 'compressed' subdirectory if not provided.
-        compress_level: Compression level to use (1 to 9), default is 9.
+        compress_level: Compression level to use (1 to 9), default is 7.
         word_size: Word size value to use for the compression, default is 16.
         dict_size: Dictionary size value to use for the compression, default is 1536.
 
@@ -140,10 +139,10 @@ def compress_7z(
     path_in: Path,
     path_out: Optional[Path] = None,
     use_7zip: bool = False,
-    compress_level: int = 9,
+    compress_level: int = 7,
     word_size: WordSize = WordSize.WS16,
     dict_size: DictionarySize = DictionarySize.DS1536,
-) -> Optional[Path]:
+) -> Path | None:
     """Compress a target file and save it as a 7z archive to the output directory.
 
     Args:
@@ -151,7 +150,7 @@ def compress_7z(
         path_out: Path to the archive to be saved. Use 'compressed' subdirectory if not provided.
         use_7zip: Whether to use the 7zip CLI to perform the compression, defaults to False. Can also be flagged
             using the USE_7ZIP environment variable (string bool).
-        compress_level: Compression level to use (1 to 9). Only used with 7-Zip CLI, default is 9.
+        compress_level: Compression level to use (1 to 9). Only used with 7-Zip CLI, default is 7.
         word_size: Word size value to use for the compression. Only used with 7-Zip CLI, default is 16.
         dict_size: Dictionary size value to use for the compression. Only used with 7-Zip CLI, default is 1536.
 
@@ -225,116 +224,194 @@ def compress_7z_all(
 """
 
 
-def unpack_zip(path: Path) -> None:
+def unpack_zip(path: Path) -> Path:
     """Unpack target 'zip' archive.
 
     Args:
         path: Path to the archive.
 
+    Returns:
+        Path to the directory containing extracted contents.
+
     Raises:
         FileNotFoundError: If archive couldn't be located.
     """
     if not path.is_file():
         raise FileNotFoundError(f'Archive not found: {str(path)}')
-    with zipfile.ZipFile(path) as z:
-        z.extractall(path=path.parent)
+    output = path.parent
+    with zipfile.ZipFile(path, 'r') as z:
+        z.extractall(path=output)
+    return output
 
 
-def unpack_gz(path: Path) -> None:
-    """Unpack target 'gz' archive.
+def unpack_gz(path: Path) -> Path:
+    """Unpack target 'gz' compressed file.
 
     Args:
-        path: Path to the archive.
+        path: Path to the compressed file.
+
+    Returns:
+        Path to the decompressed file.
 
     Raises:
-        FileNotFoundError: If archive couldn't be located.
+        FileNotFoundError: If file couldn't be located.
     """
     if not path.is_file():
         raise FileNotFoundError(f'Archive not found: {str(path)}')
-    output = path.parent / path.name[:-3]
+    output = path.with_suffix("")
     with gzip.open(path) as fr, open(output, 'wb') as fw:
         shutil.copyfileobj(fr, fw)  # noqa
+    return output
 
 
-def unpack_xz(path: Path) -> None:
+def unpack_xz(path: Path) -> Path:
     """Unpack target 'xz' archive.
 
     Args:
-        path: Path to the archive.
+        path: Path to the compressed file.
+
+    Returns:
+        Path to the decompressed file.
 
     Raises:
-        FileNotFoundError: If archive couldn't be located.
+        FileNotFoundError: If file couldn't be located.
     """
     if not path.is_file():
         raise FileNotFoundError(f'Archive not found: {str(path)}')
-    output = path.parent / path.name[:-3]
+    output = path.with_suffix("")
     with lzma.open(path) as fr, open(output, 'wb') as fw:
         shutil.copyfileobj(fr, fw)  # noqa
+    return output
 
 
-def unpack_bz2(path: Path) -> None:
+def unpack_bz2(path: Path) -> Path:
     """Unpack target 'bz2' archive.
+
+    Args:
+        path: Path to the compressed file.
+
+    Returns:
+        Path to the decompressed file.
+
+    Raises:
+        FileNotFoundError: If file couldn't be located.
+    """
+    if not path.is_file():
+        raise FileNotFoundError(f'Archive not found: {str(path)}')
+    output = path.with_suffix("")
+    with bz2.open(path) as fr, open(output, mode='wb') as fw:
+        shutil.copyfileobj(fr, fw)  # noqa
+    return output
+
+
+def unpack_7z_7zip(path: Path, cmd: str = "7z") -> Path:
+    """Unpack target '7z' archive using 7-Zip.
+
+    Args:
+        path: Path to the archive.
+        cmd: 7-Zip command to use.
+
+    Returns:
+        Path to the directory containing extracted contents.
+
+    Raises:
+        RuntimeError: If 7-Zip encounters an exception trying to extract the archive.
+    """
+    output = path.parent
+    proc = subprocess.run(
+        [
+            cmd,
+            "x",
+            "-y",
+            "-bd",
+            "-bso0",
+            "-bse0",
+            f"-o{str(output)}",
+            str(path)
+        ],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        check=False
+    )
+    if proc.returncode != 0:
+        raise RuntimeError(f"7-Zip extraction failed (rc={proc.returncode}) for: {path}")
+    return output
+
+
+def unpack_7z_py(path: Path) -> Path:
+    """Unpack target '7z' archive using py7zr.
 
     Args:
         path: Path to the archive.
 
-    Raises:
-        FileNotFoundError: If archive couldn't be located.
+    Returns:
+        Path to the directory containing extracted contents.
     """
-    if not path.is_file():
-        raise FileNotFoundError(f'Archive not found: {str(path)}')
-    output = path.parent / path.name[:-4]
-    with bz2.open(path) as fr, open(output, mode='wb') as fw:
-        shutil.copyfileobj(fr, fw)  # noqa
+    output = path.parent
+    with py7zr.SevenZipFile(path, 'r') as z:
+        z.extractall(path=output)
+    return output
 
 
-def unpack_7z(path: Path) -> None:
+def unpack_7z(path: Path) -> Path:
     """Unpack target '7z' archive.
 
     Args:
         path: Path to the archive.
 
+    Returns:
+        Path to the directory containing extracted contents.
+
     Raises:
         FileNotFoundError: If archive couldn't be located.
     """
     if not path.is_file():
         raise FileNotFoundError(f'Archive not found: {str(path)}')
-    with py7zr.SevenZipFile(path, 'r') as z:
-        z.extractall(path=path.parent)
+    try:
+        exe = shutil.which("7z") or shutil.which("7za")
+        if exe:
+            return unpack_7z_7zip(path, exe)
+    except (OSError, RuntimeError):
+        pass
+    return unpack_7z_py(path)
 
 
-def unpack_tar(path: Path, mode: str = 'gz'):
+def unpack_tar(path: Path) -> Path:
     """Unpack target 'tar' archive of a given type.
 
     Args:
         path: Path to the archive.
-        mode: Mode to use when unpacking, i.e. type of archive it is (gz, xz, etc). Defaults to `gz`.
 
     Raises:
         FileNotFoundError: If archive couldn't be located.
     """
+    _output = path.parent
     if not path.is_file():
         raise FileNotFoundError(f'Archive not found: {str(path)}')
-    with tarfile.open(path, f'r:{mode}') as z:
-        z.extractall(path=path.parent)
+    with tarfile.open(path, "r:*") as tf:
+        tf.extractall(path=_output)
+    return _output
 
 
-def unpack_tar_gz(path: Path) -> None:
-    """Shorthand function for `unpack_tar` targeting a `tar.gz` archive."""
-    unpack_tar(path, mode='gz')
+def unpack_tar_7z(path: Path) -> Path:
+    """Unpack target '7z' archive of tar file, then unpack tar file.
+
+    Args:
+        path: Path to the archive.
+
+    Raises:
+        FileNotFoundError: If archive couldn't be located.
+    """
+    _tar_file = path.with_suffix("")
+    if not path.is_file():
+        raise FileNotFoundError(f'Archive not found: {str(path)}')
+    unpack_7z(path)
+    _output = unpack_tar(_tar_file)
+    os.unlink(_tar_file)
+    return _output
 
 
-def unpack_tar_xz(path: Path) -> None:
-    """Shorthand function for `unpack_tar` targeting a `tar.xz` archive."""
-    unpack_tar(path, mode='xz')
-
-
-def unpack_tar_bz2(path: Path) -> None:
-    """Shorthand function for `unpack_tar` targeting a `tar.bz2` archive."""
-    unpack_tar(path, mode='bz2')
-
-
-def unpack_archive(path: Path, remove: bool = True, thread_lock: Optional[Lock] = None) -> None:
+def unpack_archive(path: Path, remove: bool = True, thread_lock: Optional[Lock] = None) -> None | Path:
     """Unpack an archive using the correct methodology based on its extension.
 
     Args:
@@ -343,6 +420,10 @@ def unpack_archive(path: Path, remove: bool = True, thread_lock: Optional[Lock] 
         thread_lock: Optional Lock object used to prevent concurrent unpacking, will use
             default Lock object if not provided.
 
+    Returns:
+        Path to the directory of extracted contents or the extracted file. Returns None if archive doesn't exist
+            or failed to extract.
+
     Raises:
         FileNotFoundError: If archive couldn't be located.
     """
@@ -350,18 +431,21 @@ def unpack_archive(path: Path, remove: bool = True, thread_lock: Optional[Lock] 
         ArchType.Zip: unpack_zip,
         ArchType.GZip: unpack_gz,
         ArchType.XZip: unpack_xz,
-        ArchType.TarGZip: unpack_tar_gz,
-        ArchType.TarXZip: unpack_tar_xz,
-        ArchType.SevenZip: unpack_7z,
-        ArchType.TarSevenZip: unpack_7z
+        ArchType.BZip2: unpack_bz2,
+        ArchType.TarGZip: unpack_tar,
+        ArchType.TarXZip: unpack_tar,
+        ArchType.TarBZip2: unpack_tar,
+        ArchType.TarSevenZip: unpack_tar_7z,
+        ArchType.SevenZip: unpack_7z
     }
     if path.suffix not in action_map:
-        return
+        return None
     action = action_map[path.suffix]
     if thread_lock is None:
         thread_lock = ARCHIVE_LOCK
     with thread_lock:
-        _ = action(path)
+        output = action(path)
     if remove:
-        os.remove(path)
+        os.unlink(path)
     gc.collect()
+    return output

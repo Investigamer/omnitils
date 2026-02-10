@@ -1,7 +1,7 @@
 """
 * File Utilities
 * Various utilities for working with files, directories, archives, and other file systems.
-* Copyright (c) Hexproof Systems <hexproofsystems@gmail.com>
+* Copyright (c) Hexproof Systems <dev@hexproof.io>
 * LICENSE: Mozilla Public License 2.0
 """
 from omnitils.files._core import *

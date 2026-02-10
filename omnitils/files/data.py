@@ -1,17 +1,15 @@
 """
 * Data File Utilities
 * Generalized utilities for working with data files, i.e. JSON, YAML, etc.
-* Copyright (c) Hexproof Systems <hexproofsystems@gmail.com>
+* Copyright (c) Hexproof Systems <dev@hexproof.io>
 * LICENSE: Mozilla Public License 2.0
 """
-# Standard Library Imports
 import json
 from contextlib import suppress
 from pathlib import Path
 from typing import Optional, TypedDict, Callable, Union
 from threading import Lock
 
-# Third Party Imports
 from yaml import (
     load as yaml_load,
     dump as yaml_dump,
