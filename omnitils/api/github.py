@@ -1,10 +1,9 @@
 """
 * GitHub Utilities
 * Generalized utilities for accessing GitHub files or GitHub API endpoints.
-* Copyright (c) Hexproof Systems <hexproofsystems@gmail.com>
+* Copyright (c) Hexproof Systems <dev@hexproof.io>
 * LICENSE: Mozilla Public License 2.0
 """
-# Standard Library Imports
 import os
 import zipfile
 from logging import getLogger
@@ -12,12 +11,11 @@ from pathlib import Path
 import requests
 from typing import Optional, Union, Callable
 
-# Third Party Imports
+# Todo: Replace 'ratelimit' with 'limits'
 import yarl
 from backoff import on_exception, expo
-from ratelimit import RateLimitDecorator, sleep_and_retry
+from ratelimit.decorators import RateLimitDecorator, sleep_and_retry
 
-# Local Imports
 from omnitils.fetch import download_file
 from omnitils.files.folders import mkdir_full_perms
 from omnitils.fetch._core import request_header_default, chunk_size_default
@@ -163,7 +161,7 @@ def gh_download_repository(
     chunk_size: int = chunk_size_default,
     handler: Optional[Callable] = None
 ) -> Path:
-    """Download a gitHub repository and extract it to the provided path.
+    """Download a GitHub repository and extract it to the provided path.
 
     Args:
         user: Username of the repository owner.

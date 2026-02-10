@@ -1,10 +1,9 @@
 """
 * Google Drive Utilities
 * Generalized utilities for accessing Google Drive files or Google Drive API endpoints.
-* Copyright (c) Hexproof Systems <hexproofsystems@gmail.com>
+* Copyright (c) Hexproof Systems <dev@hexproof.io>
 * LICENSE: Mozilla Public License 2.0
 """
-# Standard Library Imports
 from contextlib import suppress
 from dataclasses import dataclass
 import os
@@ -13,13 +12,11 @@ import re
 import shutil
 from typing import Optional, Callable, TypedDict, NotRequired, Union
 
-# Third Party Imports
 from loguru import logger
 import requests
 import yarl
 from requests import Session, Response
 
-# Local Imports
 from omnitils.fetch import (
     request_header_default,
     get_new_session,
