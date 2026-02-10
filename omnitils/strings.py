@@ -1,10 +1,9 @@
 """
 * String Utilities
 * Generalized utilities for working with strings.
-* Copyright (c) Hexproof Systems <hexproofsystems@gmail.com>
+* Copyright (c) Hexproof Systems <dev@hexproof.io>
 * LICENSE: Mozilla Public License 2.0
 """
-# Standard Library Imports
 import codecs
 from datetime import datetime
 import html
@@ -13,11 +12,9 @@ from typing import Optional, Union
 import unicodedata
 from urllib import parse
 
-# Third Party Imports
 import yarl
 from dateutil import parser
 
-# Maps strings to boolean values
 STR_BOOL_MAP = {
     '1': True,
     'y': True,

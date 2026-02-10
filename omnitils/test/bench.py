@@ -1,18 +1,15 @@
 """
 * Benchmarking Utilities
 * Generalized utilities for performing benchmarking tests.
-* Copyright (c) Hexproof Systems <hexproofsystems@gmail.com>
+* Copyright (c) Hexproof Systems <dev@hexproof.io>
 * LICENSE: Mozilla Public License 2.0
 """
 import functools
-# Standard Library Imports
 from time import perf_counter
 from typing import Optional, Callable, Any
 
-# Third Party
 from omnitils.logs import logger as _logger
 
-# Local Imports
 from omnitils.schema import Schema
 
 """

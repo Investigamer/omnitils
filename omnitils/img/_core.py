@@ -1,11 +1,9 @@
 """
 * Utils: Images
 """
-# Standard Library Imports
 from pathlib import Path
 from typing import Optional
 
-# Third Party Imports
 from PIL import Image
 from PIL.Image import Resampling
 

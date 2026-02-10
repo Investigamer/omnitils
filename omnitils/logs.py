@@ -1,15 +1,13 @@
 """
 * Logging Utilities
 * Generalized utilities for loggers and logging output.
-* Copyright (c) Hexproof Systems <hexproofsystems@gmail.com>
+* Copyright (c) Hexproof Systems <dev@hexproof.io>
 * LICENSE: Mozilla Public License 2.0
 """
-# Standard Library Imports
 import copy
 from typing import Any, Callable, Optional
 import sys
 
-# Third Party Imports
 from loguru import logger as loguru_logger
 from loguru._logger import Logger
 

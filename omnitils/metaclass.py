@@ -1,7 +1,7 @@
 """
 * Metaclass Utilities
 * General utility meta classes.
-* Copyright (c) Hexproof Systems <hexproofsystems@gmail.com>
+* Copyright (c) Hexproof Systems <dev@hexproof.io>
 * LICENSE: Mozilla Public License 2.0
 """
 

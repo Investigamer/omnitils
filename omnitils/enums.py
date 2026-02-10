@@ -1,14 +1,12 @@
 """
 * Enums Utilities
 * Generalized utility Enum classes.
-* Copyright (c) Hexproof Systems <hexproofsystems@gmail.com>
+* Copyright (c) Hexproof Systems <dev@hexproof.io>
 * LICENSE: Mozilla Public License 2.0
 """
-# Standard Library Imports
 from enum import Enum, EnumMeta
 from typing import Iterator, Any
 
-# Local Imports
 from omnitils.properties import default_prop
 
 

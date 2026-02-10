@@ -1,10 +1,9 @@
 """
 * Dict Utilities
 * Generalized utilities for working with dictionaries.
-* Copyright (c) Hexproof Systems <hexproofsystems@gmail.com>
+* Copyright (c) Hexproof Systems <dev@hexproof.io>
 * LICENSE: Mozilla Public License 2.0
 """
-# Standard Library Imports
 from typing import Hashable, Any
 
 """

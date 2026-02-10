@@ -1,13 +1,11 @@
 """
 * Omnitils CLI Application
 * Internal CLI utilities, primarily used for testing and deployment.
-* Copyright (c) Hexproof Systems <hexproofsystems@gmail.com>
+* Copyright (c) Hexproof Systems <dev@hexproof.io>
 * LICENSE: Mozilla Public License 2.0
 """
-# Third Party Imports
 import click
 
-# Local Imports
 from omnitils._cli.testing import testing_group
 
 

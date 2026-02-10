@@ -1,7 +1,7 @@
 """
 * Property Utilities
 * General utility property decorators.
-* Copyright (c) Hexproof Systems <hexproofsystems@gmail.com>
+* Copyright (c) Hexproof Systems <dev@hexproof.io>
 * LICENSE: Mozilla Public License 2.0
 """
 from typing import Callable

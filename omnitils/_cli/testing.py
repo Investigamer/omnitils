@@ -1,18 +1,15 @@
 """
 * CLI Commands: Testing
 * Internal testing utility commands.
-* Copyright (c) Hexproof Systems <hexproofsystems@gmail.com>
+* Copyright (c) Hexproof Systems <dev@hexproof.io>
 * LICENSE: Mozilla Public License 2.0
 """
-# Standard Library Imports
 import os
 import shutil
 
-# Third Party Imports
 import click
 from loguru import logger
 
-# Local Imports
 from omnitils.api.github import (
     gh_download_repository,
     gh_download_directory_files)

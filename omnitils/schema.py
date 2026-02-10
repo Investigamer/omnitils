@@ -1,13 +1,11 @@
 """
 * Schema Utilities
 * Generalized utilities for creating and validating schemas.
-* Copyright (c) Hexproof Systems <hexproofsystems@gmail.com>
+* Copyright (c) Hexproof Systems <dev@hexproof.io>
 * LICENSE: Mozilla Public License 2.0
 """
-# Standard Library Imports
 from typing import Any
 
-# Third Party Imports
 from pydantic import BaseModel
 
 """
