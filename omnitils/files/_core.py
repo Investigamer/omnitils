@@ -46,9 +46,10 @@ def get_temporary_file(path: Path, ext: str = '.tmp', allow_existing: bool = Fal
     # Look for an existing file
     temp = path.with_suffix(ext)
     if allow_existing:
+        path_exists = path.is_file()
         for p in os.listdir(path.parent):
             file = path.parent / p
-            if file.is_dir() or os.path.samefile(file, path):
+            if file.is_dir() or (path_exists and os.path.samefile(file, path)):
                 continue
             if temp.name in file.name:
                 return file

@@ -260,7 +260,7 @@ def gdrive_download_file(
             f'{path.name} | {url}')
 
     # Rename temporary file
-    if not os.path.samefile(file, path):
+    if not (path.is_file() and os.path.samefile(file, path)):
         shutil.move(file, path)
 
     # Close session and return
