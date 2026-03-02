@@ -33,7 +33,7 @@ def rate_limit(
             if reschedule:
                 while not limiter.hit(limit, *identifiers):
                     window = limiter.get_window_stats(limit, *identifiers)
-                    sleep(window.reset_time - time())
+                    sleep(max(0, window.reset_time - time()))
             elif not limiter.hit(limit, *identifiers):
                 raise RateLimitError(f"Limit exceeded for '{identifiers}' '{limit}'")
             return func(*args, **kwargs)
