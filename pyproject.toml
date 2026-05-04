@@ -5,7 +5,7 @@ description = "Universal reusable Python utils for the modern human."
 authors = [{ name = "Investigamer", email = "dev@hexproof.io" }]
 license = "MPL-2.0"
 readme = "README.md"
-requires-python = ">=3.10,<3.15"
+requires-python = ">=3.12,<3.15"
 keywords = ["omnitils", "utilities", "utils", "files", "schema", "test", "benchmark", "enums", "logs", "investigamer"]
 classifiers = [
     # Development status
@@ -26,23 +26,22 @@ classifiers = [
     "Programming Language :: Python :: 3.14"
 ]
 dependencies = [
-    "requests>=2.32.4,<3",
+    "requests>=2.33.1,<3",
     "PyYAML>=6.0.1,<7",
-    "yarl>=1.9.4,<2",
+    "yarl>=1.23.0,<2",
     "tomlkit>=0.13.2,<1",
-    "pillow>=12.1.0,<13",
+    "pillow>=12.2.0,<13",
     "ratelimit>=2.2.1,<3",
     "backoff>=2.2.1,<3",
     "pathvalidate>=3.2.0,<4",
     "py7zr>=1.1.0,<2",
     "tqdm>=4.66.1,<5",
-    "tomli>=2.0.1,<3",
-    "pydantic>=2.9.2,<3",
+    "tomli>=2.4.1,<3",
+    "pydantic>=2.13.3,<3",
     "loguru>=0.7.2,<0.8",
-    "click>=8.1.7,<9",
     "python-dateutil>=2.9.0.post0,<3",
     "limits>=5.8.0",
-    "typer>=0.20.1,<1"
+    "typer>=0.25.1,<1"
 ]
 
 [project.optional-dependencies]
@@ -60,6 +59,7 @@ Source = "https://github.com/Investigamer/omnitils"
 Sponsor = "https://patreon.com/mpcfill"
 
 [project.scripts]
+omnitils = 'omnitils._cli:app'
 hooks-cz = 'hooks.commitizen:hooks'
 
 [build-system]

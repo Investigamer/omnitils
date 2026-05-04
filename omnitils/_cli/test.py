@@ -7,20 +7,26 @@
 import os
 import shutil
 
-import click
 from loguru import logger
+import typer
 
 from omnitils.api.github import (
     gh_download_repository,
     gh_download_directory_files)
 from omnitils.files import DisposableDir
 
+# Command group
+app = typer.Typer(
+    name='test',
+    help="A suite of commands for testing omnitils."
+)
+
 """
 * Test Group: Github
 """
 
 
-@click.command()
+@app.command("gh-repo")
 def test_gh_download_repository():
     """Tests the use of `omnitils.fetch.gh_download_repository`."""
 
@@ -47,7 +53,7 @@ def test_gh_download_repository():
             logger.error('Repo directory not downloaded!')
 
 
-@click.command()
+@app.command("gh-files")
 def test_gh_download_directory_files():
     """Tests the user of `omnitils.fetch.gh_download_directory_files`."""
 
@@ -67,25 +73,3 @@ def test_gh_download_directory_files():
             logger.success('Test passed!')
         except AssertionError:
             return logger.error('No files downloaded from repo!')
-
-
-@click.group(
-    commands={
-        'files': test_gh_download_directory_files,
-        'repo': test_gh_download_repository
-    }
-)
-def github_group():
-    """Command group for testing the `fetch.github` module."""
-    pass
-
-
-"""
-* Main Testing Group
-"""
-
-
-@click.group(commands={'fetch-gh': github_group})
-def testing_group():
-    """Command group for performing tests."""
-    pass
