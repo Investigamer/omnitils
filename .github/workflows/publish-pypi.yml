@@ -1,9 +1,6 @@
-name: "Publish Releases: PyPi / GitHub"
+name: "Publish Releases: PyPi"
 
 on:
-  push:
-    tags:
-      - '*.*.*'
   workflow_dispatch:
 
 # Prevent overlapping publishes if tags get pushed in quick succession.
@@ -25,18 +22,6 @@ jobs:
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
-          fetch-tags: true
-
-      # Validate tag format, save as ENV
-      - name: Validate tag format (x.y.z)
-        shell: bash
-        run: |
-          set -euo pipefail
-          TAG="${GITHUB_REF_NAME}"
-          if [[ ! "$TAG" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "This workflow only runs for tags like x.y.z. Got: $TAG"
-            exit 1
-          fi
 
       # Set-up Python 3.12 (uv)
       - name: Setup uv (Python 3.12 + cache)
@@ -45,36 +30,11 @@ jobs:
           python-version: "3.12"
           enable-cache: true
 
-      # Sync dependencies (with dev)
-      - name: Sync Dependencies
-        shell: bash
-        run: |
-          set -euo pipefail
-          uv sync --extra dev
-          uv lock
-
-      # Generate a Release on GitHub, insert release notes from cz
-      - name: Create GitHub Release (body from release_notes.md)
-        shell: bash
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          set -euo pipefail
-          TAG="${GITHUB_REF_NAME}"
-          NOTES="$(uv run cz changelog "$TAG" --dry-run)"
-          gh release create "$TAG" --title "$TAG" --notes "$NOTES"
-
       # Sync without dev and build
-      - name: Build Release
+      - name: Build and Publish
         shell: bash
         run: |
           set -euo pipefail
           uv sync --locked
           uv build
-
-      # Publish to PyPi
-      - name: Publish to PyPI (Trusted Publishing)
-        shell: bash
-        run: |
-          set -euo pipefail
           uv publish
