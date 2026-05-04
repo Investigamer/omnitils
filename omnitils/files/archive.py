@@ -2,7 +2,6 @@
 * Utils: Compressing and Decompressing Archives
 """
 import bz2
-from contextlib import suppress
 import gzip
 import gc
 import lzma
@@ -18,7 +17,7 @@ import zipfile
 from loguru import logger
 from tqdm import tqdm
 import py7zr
-from py7zr import SevenZipFile, FILTER_LZMA, FILTER_X86
+from py7zr import SevenZipFile, FILTER_LZMA2
 
 from omnitils.enums import StrConstant
 from omnitils.strings import str_to_bool_safe
@@ -74,137 +73,309 @@ class DictionarySize(StrConstant):
 
 
 """
+* Private Utils
+"""
+
+
+def _archive_type(path: Path) -> ArchType | None:
+    name = path.name.lower()
+
+    if name.endswith(".tar.gz"):
+        return ArchType.TarGZip
+    if name.endswith(".tar.xz"):
+        return ArchType.TarXZip
+    if name.endswith(".tar.bz2"):
+        return ArchType.TarBZip2
+    if name.endswith(".tar.7z"):
+        return ArchType.TarSevenZip
+    if name.endswith(".zip"):
+        return ArchType.Zip
+    if name.endswith(".gz"):
+        return ArchType.GZip
+    if name.endswith(".xz"):
+        return ArchType.XZip
+    if name.endswith(".bz2"):
+        return ArchType.BZip2
+    if name.endswith(".7z"):
+        return ArchType.SevenZip
+    if name.endswith(".tar"):
+        return ArchType.Tar
+    return None
+
+
+def _get_default_archive_path(path_in: Path, path_out: Path | None) -> tuple[Path, Path]:
+    """Find a sane default path for a compressed file. Returns as (path_in, path_out)."""
+    if path_out is not None:
+        _path = path_out.with_suffix(".7z")
+        _path.parent.mkdir(parents=True, exist_ok=True)
+        return path_in, _path
+
+    _path = (path_in.parent / ".compressed" / path_in.name).with_suffix(".7z")
+    _path.parent.mkdir(parents=True, exist_ok=True)
+    return path_in, _path
+
+
+def _choose_7z_dict_size(path_in: Path) -> DictionarySize:
+    """Choose a sane LZMA dictionary size from the input file size."""
+    size_mib = max(1, path_in.stat().st_size // (1024 * 1024))
+
+    if size_mib <= 16:
+        return DictionarySize.DS64
+    if size_mib <= 128:
+        return DictionarySize.DS128
+    if size_mib <= 512:
+        return DictionarySize.DS256
+    if size_mib <= 2048:
+        return DictionarySize.DS512
+    return DictionarySize.DS1024
+
+
+def _choose_7z_word_size(
+    compress_level: int,
+    dict_size: DictionarySize,
+) -> WordSize:
+    """Choose a sane LZMA fast-bytes value (word size). 7-Zip's 7z defaults use
+        FastBytes 32 for normal compression levels and 64 for higher compression levels.
+    """
+    dict_mib = int(dict_size)
+
+    # Lean toward 64+ for harder compression
+    if compress_level >= 7:
+        if dict_mib >= 512:
+            return WordSize.WS96
+        return WordSize.WS64
+
+    # Lean toward 32 for simple compression
+    if compress_level >= 5:
+        if dict_mib >= 256:
+            return WordSize.WS48
+        return WordSize.WS32
+    return WordSize.WS32
+
+
+def _build_py7zr_filters(
+    path: Path,
+    compress_level: int = 7,
+    word_size: WordSize | None = None,
+    dict_size: DictionarySize | None = None
+) -> list[dict[str, int]]:
+    resolved_level = max(1, min(9, compress_level))
+    resolved_dict_mib: DictionarySize = dict_size or _choose_7z_dict_size(path)
+    resolved_word: WordSize = word_size or _choose_7z_word_size(resolved_level, resolved_dict_mib)
+    return [
+        {
+            "id": FILTER_LZMA2,
+            "preset": resolved_level,
+            "dict_size": int(str(resolved_dict_mib)) * 1024 * 1024,
+            "nice_len": int(str(resolved_word))
+        }
+    ]
+
+
+"""
 * Compression Utils
 """
 
 
 def compress_7z_py(
     path_in: Path,
-    path_out: Optional[Path] = None,
+    path_out: Path | None = None,
+    compress_level: int = 7,
+    word_size: WordSize | None = None,
+    dict_size: DictionarySize | None = None,
     filters: Optional[list[dict[str, int]]] = None
 ) -> Path | None:
     """Compress a target file to a target 7z archive using the py7zr module.
 
     Args:
         path_in: File to compress.
-        path_out: Path to the archive to be saved. Use 'compressed' subdirectory if not provided.
-        filters: Filters used when initializing the SevenZipFile object, uses LZMA+BCJ by default.
+        path_out: Path to the archive to be saved. Use '.compressed' subdirectory if not provided.
+        compress_level: Compression level to use (1 to 9), default is 7.
+        word_size: Word size value to use for the compression. If None, chosen automatically.
+        dict_size: Dictionary size value to use for the compression. If None, chosen automatically.
+        filters: Filters used when initializing the SevenZipFile object, advanced use only.
 
     Returns:
         Path to the resulting 7z archive if successful, otherwise None.
     """
-    lzma_bcj = filters or [{'id': FILTER_X86}, {'id': FILTER_LZMA}]
-    with SevenZipFile(path_out, 'w', filters=lzma_bcj) as z:
-        z.write(path_in)
-    return path_out
+    # Ensure we have a valid input and output path
+    if not path_in.is_file():
+        return None
+    _path_in, _path_out = _get_default_archive_path(path_in, path_out)
+
+    # Create a py7zr filter using provided compression and word/dict sizes
+    compress_level = max(1, min(9, compress_level))
+    resolved_filters = filters or _build_py7zr_filters(
+        path=_path_in,
+        compress_level=compress_level,
+        word_size=word_size,
+        dict_size=dict_size
+    )
+
+    with SevenZipFile(_path_out, 'w', filters=resolved_filters) as z:
+        z.write(_path_in)
+    return _path_out
 
 
 def compress_7z_7zip(
     path_in: Path,
-    path_out: Optional[Path] = None,
+    path_out: Path | None = None,
     compress_level: int = 7,
-    word_size: WordSize = WordSize.WS16,
-    dict_size: DictionarySize = DictionarySize.DS1536,
-
+    word_size: WordSize | None = None,
+    dict_size: DictionarySize | None = None,
+    cmd: str = "7z"
 ) -> Path | None:
     """Compress a target file to a target 7z archive using the 7-Zip CLI.
 
     Notes:
-        Compressing using the 7-Zip CLI is relevantly faster than compressing with the py7zr
-            package, but required 7-Zip be installed on the host system.
+        Compressing using the 7-Zip CLI is generally much faster than py7zr,
+        but requires 7-Zip to be installed on the host system.
 
     Args:
         path_in: File to compress.
-        path_out: Path to the archive to be saved. Use 'compressed' subdirectory if not provided.
+        path_out: Path to the archive to be saved. Use '.compressed' subdirectory if not provided.
         compress_level: Compression level to use (1 to 9), default is 7.
-        word_size: Word size value to use for the compression, default is 16.
-        dict_size: Dictionary size value to use for the compression, default is 1536.
+        word_size: Word size value to use for the compression. If None, chosen automatically.
+        dict_size: Dictionary size value to use for the compression. If None, chosen automatically.
+        cmd: String used to invoke 7-Zip CLI.
 
     Returns:
         Path to the resulting 7z archive if successful, otherwise None.
     """
-    null_device = open(os.devnull, 'w')
-    subprocess.run([
-        "7z", "a", "-t7z", "-m0=LZMA",
+    # Ensure we have a valid input and output path
+    if not path_in.is_file():
+        return None
+    _path_in, _path_out = _get_default_archive_path(path_in, path_out)
+
+    # Use provided compression and dict/word sizes, or choose sane defaults
+    compress_level = max(1, min(9, compress_level))
+    resolved_dict_size = dict_size or _choose_7z_dict_size(_path_in)
+    resolved_word_size = word_size or _choose_7z_word_size(
+        compress_level=compress_level,
+        dict_size=resolved_dict_size,
+    )
+
+    cmd_args = [
+        cmd,
+        "a",
+        "-t7z",
+        "-m0=LZMA2",
         f"-mx={compress_level}",
-        f"-md={dict_size}M",
-        f"-mfb={word_size}",
-        str(path_out),
-        str(path_in)
-    ], stdout=null_device, stderr=null_device)
-    return path_out
+        f"-md={resolved_dict_size}M",
+        f"-mfb={resolved_word_size}",
+        str(_path_out),
+        str(_path_in)
+    ]
+
+    try:
+        with open(os.devnull, "w") as null_device:
+            result = subprocess.run(
+                cmd_args,
+                stdout=null_device,
+                stderr=null_device,
+                check=False,
+            )
+    except OSError:
+        return None
+    if result.returncode != 0:
+        return None
+    return _path_out
 
 
+# noinspection PyDeprecation
 def compress_7z(
     path_in: Path,
-    path_out: Optional[Path] = None,
-    use_7zip: bool = False,
+    path_out: Path | None = None,
+    use_7zip: bool | None = None,
     compress_level: int = 7,
-    word_size: WordSize = WordSize.WS16,
-    dict_size: DictionarySize = DictionarySize.DS1536,
+    word_size: WordSize | None = None,
+    dict_size: DictionarySize | None = None
 ) -> Path | None:
-    """Compress a target file and save it as a 7z archive to the output directory.
+    """Compress a target file and save it as a 7z archive to the output directory. Will use 7-Zip if installed,
+        otherwise falls back to py7zr.
 
     Args:
         path_in: File to compress.
-        path_out: Path to the archive to be saved. Use 'compressed' subdirectory if not provided.
-        use_7zip: Whether to use the 7zip CLI to perform the compression, defaults to False. Can also be flagged
-            using the USE_7ZIP environment variable (string bool).
-        compress_level: Compression level to use (1 to 9). Only used with 7-Zip CLI, default is 7.
-        word_size: Word size value to use for the compression. Only used with 7-Zip CLI, default is 16.
-        dict_size: Dictionary size value to use for the compression. Only used with 7-Zip CLI, default is 1536.
+        path_out: Path to the archive to be saved. Use '.compressed' subdirectory if not provided.
+        use_7zip: Whether to try to use 7-Zip CLI to perform the compression. Can also be flagged
+            using the USE_7ZIP environment variable (string bool). Defaults to True.
+        compress_level: Compression level to use (1 to 9), default is 7.
+        word_size: Word size value to use for the compression. If None, chosen automatically.
+        dict_size: Dictionary size value to use for the compression. If None, chosen automatically.
 
     Returns:
         Path to the resulting 7z archive if successful, otherwise None.
     """
-    # Define the output file path
-    path_out = path_out or Path(path_in.parent, '.compressed', path_in.name)
-    path_out = path_out.with_suffix('.7z')
+    # Ensure we have a valid input and output path
+    if not path_in.is_file():
+        return None
+    _path_in, _path_out = _get_default_archive_path(path_in, path_out)
 
-    # Compress the file
-    with suppress(Exception):
+    try:
+        if use_7zip is None:
+            use_7zip = str_to_bool_safe(os.environ.get("USE_7ZIP", "1"))
+        if use_7zip:
+            exe = shutil.which("7z") or shutil.which("7za")
+            if exe:
+                result = compress_7z_7zip(
+                    path_in=_path_in,
+                    path_out=_path_out,
+                    compress_level=compress_level,
+                    word_size=word_size,
+                    dict_size=dict_size,
+                    cmd=exe
+                )
+                if result is not None:
+                    return result
 
-        # Compress with 7-Zip
-        if use_7zip or str_to_bool_safe(os.environ.get('USE_7ZIP', '0')):
-            return compress_7z_7zip(
-                path_in=path_in,
-                path_out=path_out,
-                compress_level=compress_level,
-                word_size=word_size,
-                dict_size=dict_size)
-
-        # Compress with py7zr
         return compress_7z_py(
-            path_in=path_in,
-            path_out=path_out)
+            path_in=_path_in,
+            path_out=_path_out,
+            compress_level=compress_level,
+            word_size=word_size,
+            dict_size=dict_size)
 
-    # Error occurred, None returned
-    return logger.exception(f'Unable to compress file: {path_in.name}')
+    except OSError:
+        logger.exception(f"Unable to compress file: {path_in.name}")
+        return None
 
 
 def compress_7z_all(
     path_in: Path,
-    path_out: Path = None,
-    word_size: WordSize = WordSize.WS16,
-    dict_size: DictionarySize = DictionarySize.DS1536
-) -> None:
+    path_out: Path | None = None,
+    use_7zip: bool = True,
+    compress_level: int = 7,
+    word_size: WordSize | None = None,
+    dict_size: DictionarySize | None = None
+) -> Path | None:
     """Compress every file inside `path_in` directory as 7z archives, then output
     those archives in the `path_out`.
 
     Args:
         path_in: Directory containing files to compress.
         path_out: Directory to place the archives. Use a subdirectory 'compressed' if not provided.
-        word_size: Word size value to use for the compression.
-        dict_size: Dictionary size value to use for the compression.
-    """
-    # Use "compressed" subdirectory if not provided, ensure output directory exists
-    path_out = path_out or Path(path_in, '.compressed')
-    path_out.mkdir(mode=777, parents=True, exist_ok=True)
+        use_7zip: Whether to try to use 7-Zip CLI to perform the compression, defaults to True. Can
+            also be flagged using the USE_7ZIP environment variable (string bool).
+        compress_level: Compression level to use (1 to 9), default is 7.
+        word_size: Word size value to use for the compression. If None, chosen automatically.
+        dict_size: Dictionary size value to use for the compression. If None, chosen automatically.
 
-    # Get a list of all .psd files in the directory
+    Returns:
+        Path to the directory each 7z archive is saved.
+    """
+    # Ensure we have a valid input and output path
+    if not path_in.is_dir():
+        return None
+    if path_out is None:
+        # Use ".compressed" subdirectory if not provided
+        path_out: Path = path_in.parent / ".compressed" / path_in.name
+    path_out.mkdir(parents=True, exist_ok=True)
+
+    # Get a list of all files in the directory
     files = [
         Path(path_in, n) for n in os.listdir(path_in)
-        if Path(path_in, n).is_file()]
+        if Path(path_in, n).is_file()
+    ]
 
     # Compress each file
     with tqdm(total=len(files), desc="Compressing files", unit="file") as pbar:
@@ -214,9 +385,12 @@ def compress_7z_all(
             compress_7z(
                 path_in=f,
                 path_out=p,
+                use_7zip=use_7zip,
+                compress_level=compress_level,
                 word_size=word_size,
                 dict_size=dict_size)
             pbar.update()
+    return path_out
 
 
 """
@@ -353,6 +527,7 @@ def unpack_7z_py(path: Path) -> Path:
     return output
 
 
+# noinspection PyDeprecation
 def unpack_7z(path: Path) -> Path:
     """Unpack target '7z' archive.
 
@@ -396,19 +571,22 @@ def unpack_tar(path: Path) -> Path:
 def unpack_tar_7z(path: Path) -> Path:
     """Unpack target '7z' archive of tar file, then unpack tar file.
 
-    Args:
-        path: Path to the archive.
+        Args:
+            path: Path to the archive.
 
-    Raises:
-        FileNotFoundError: If archive couldn't be located.
-    """
+        Raises:
+            FileNotFoundError: If archive couldn't be located.
+        """
     _tar_file = path.with_suffix("")
     if not path.is_file():
-        raise FileNotFoundError(f'Archive not found: {str(path)}')
+        raise FileNotFoundError(f"Archive not found: {path}")
+
     unpack_7z(path)
-    _output = unpack_tar(_tar_file)
-    os.unlink(_tar_file)
-    return _output
+    try:
+        return unpack_tar(_tar_file)
+    finally:
+        if _tar_file.exists():
+            _tar_file.unlink(missing_ok=True)
 
 
 def unpack_archive(path: Path, remove: bool = True, thread_lock: Optional[Lock] = None) -> None | Path:
@@ -427,25 +605,32 @@ def unpack_archive(path: Path, remove: bool = True, thread_lock: Optional[Lock] 
     Raises:
         FileNotFoundError: If archive couldn't be located.
     """
+    _lock: Lock = thread_lock or ARCHIVE_LOCK
     action_map: dict[str, Callable] = {
         ArchType.Zip: unpack_zip,
         ArchType.GZip: unpack_gz,
         ArchType.XZip: unpack_xz,
         ArchType.BZip2: unpack_bz2,
+        ArchType.Tar: unpack_tar,
         ArchType.TarGZip: unpack_tar,
         ArchType.TarXZip: unpack_tar,
         ArchType.TarBZip2: unpack_tar,
         ArchType.TarSevenZip: unpack_tar_7z,
         ArchType.SevenZip: unpack_7z
     }
-    if path.suffix not in action_map:
+
+    # Determine the unpacking action
+    archive_type = _archive_type(path)
+    if archive_type is None:
         return None
-    action = action_map[path.suffix]
-    if thread_lock is None:
-        thread_lock = ARCHIVE_LOCK
-    with thread_lock:
+    action = action_map[archive_type]
+
+    # Unpack the archive and garbage collect
+    with _lock:
         output = action(path)
-    if remove:
-        os.unlink(path)
-    gc.collect()
+        if remove:
+            path.unlink(missing_ok=True)
+        # * Note: Many sequential calls to this func can result
+        #   in memory leak without manual garbage collection.
+        gc.collect()
     return output
