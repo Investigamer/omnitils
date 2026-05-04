@@ -552,20 +552,27 @@ def unpack_7z(path: Path) -> Path:
 
 
 def unpack_tar(path: Path) -> Path:
-    """Unpack target 'tar' archive of a given type.
+    """Unpack a tar archive safely into its parent directory. Uses Python 3.12+'s
+        built-in tar extraction filter to block unsafe paths, links, and special
+        files that could escape the target directory.
 
     Args:
         path: Path to the archive.
 
+    Returns:
+        Path to the directory containing extracted contents.
+
     Raises:
         FileNotFoundError: If archive couldn't be located.
+        tarfile.TarError: If the archive is invalid or extraction fails.
     """
-    _output = path.parent
+    output = path.parent
+
     if not path.is_file():
-        raise FileNotFoundError(f'Archive not found: {str(path)}')
+        raise FileNotFoundError(f"Archive not found: {path}")
     with tarfile.open(path, "r:*") as tf:
-        tf.extractall(path=_output)
-    return _output
+        tf.extractall(path=output, filter="data")
+    return output
 
 
 def unpack_tar_7z(path: Path) -> Path:
