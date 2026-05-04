@@ -19,13 +19,13 @@ jobs:
       contents: write
       id-token: write
     environment: pypi
-
     steps:
       # Checkout repository
       - name: Checkout (full history + tags)
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
+          fetch-tags: true
 
       # Validate tag format, save as ENV
       - name: Validate tag format (x.y.z)
