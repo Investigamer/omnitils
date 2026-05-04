@@ -1,3 +1,13 @@
+## 1.5.1 (2026-05-03)
+
+### Fix
+
+- **files/archive**: Adjust use_7zip parameter to match sister function, harden unpack_zip against malicious archives
+
+### Refactor
+
+- **pyproject.toml**: Updated deps
+
 ## 1.5.0 (2026-05-03)
 
 ### Feat

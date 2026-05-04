@@ -4,4 +4,4 @@
 * Copyright (c) Hexproof Systems <dev@hexproof.io>
 * LICENSE: Mozilla Public License 2.0
 """
-__version__ = '1.5.0'
+__version__ = '1.5.1'
