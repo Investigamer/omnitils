@@ -343,7 +343,7 @@ def compress_7z(
 def compress_7z_all(
     path_in: Path,
     path_out: Path | None = None,
-    use_7zip: bool = True,
+    use_7zip: bool | None = None,
     compress_level: int = 7,
     word_size: WordSize | None = None,
     dict_size: DictionarySize | None = None
@@ -399,7 +399,9 @@ def compress_7z_all(
 
 
 def unpack_zip(path: Path) -> Path:
-    """Unpack target 'zip' archive.
+    """Unpack a zip archive safely into its parent directory.
+
+    Blocks absolute paths and path traversal outside the extraction root.
 
     Args:
         path: Path to the archive.
@@ -409,12 +411,33 @@ def unpack_zip(path: Path) -> Path:
 
     Raises:
         FileNotFoundError: If archive couldn't be located.
+        RuntimeError: If the archive contains an unsafe member path.
+        zipfile.BadZipFile: If the archive is invalid.
     """
+    output = path.parent.resolve()
     if not path.is_file():
-        raise FileNotFoundError(f'Archive not found: {str(path)}')
-    output = path.parent
-    with zipfile.ZipFile(path, 'r') as z:
-        z.extractall(path=output)
+        raise FileNotFoundError(f"Archive not found: {path}")
+
+    with zipfile.ZipFile(path, "r") as zf:
+        members = zf.infolist()
+
+        for member in members:
+            name = member.filename
+            if "\x00" in name:
+                raise RuntimeError(f"Unsafe null byte in zip archive member: {name}")
+
+            member_path = Path(name)
+            if member_path.is_absolute():
+                raise RuntimeError(f"Unsafe absolute path in zip archive: {name}")
+
+            # Extra guard for Windows-style drive-prefixed names
+            if member_path.drive:
+                raise RuntimeError(f"Unsafe drive path in zip archive: {name}")
+
+            dest = (output / member_path).resolve()
+            if output not in dest.parents and dest != output:
+                raise RuntimeError(f"Path traversal detected in zip archive: {name}")
+        zf.extractall(path=output)
     return output
 
 
