@@ -1,3 +1,22 @@
+## 1.5.0 (2026-05-03)
+
+### Feat
+
+- **files/archive**: Fix breaking changes after code review, implement support for DictionarySize/WordSize when using py7zr, add various sane defaults
+- **files**: Add support for Tar, Tar 7z, extracting 7z with faster 7-Zip if available, various tweaks and improvements
+
+### Fix
+
+- **unpack_tar**: Replace unsafe tar unpacking behavior, project now requires Python 3.12+
+- **gdrive_download_file**: Fix Google Drive download when the file doesn't already exist locally
+- **github**: Correct bad import statement, pending future replacement of ratelimit -> limits
+- **modules**: Address incorrect application of ModuleTree type, fix type issues
+
+### Refactor
+
+- **cli**: Replace click with typer for testing CLI
+- **download**: Minor type improvement
+
 ## 1.4.6 (2024-10-17)
 
 ### Fix
