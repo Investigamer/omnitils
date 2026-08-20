@@ -5,30 +5,30 @@
 * LICENSE: Mozilla Public License 2.0
 """
 
-# Standard Library Imports
-from contextlib import suppress
-from dataclasses import dataclass
 import os
-from pathlib import Path
 import re
 import shutil
-from typing import MutableMapping, Optional, Callable, TypedDict, NotRequired, Union
+from collections.abc import Callable, MutableMapping
+from contextlib import suppress
+from dataclasses import dataclass
+from logging import getLogger
+from pathlib import Path
+from typing import NotRequired, TypedDict
 
-# Third Party Imports
-from loguru import logger
 import requests
 import yarl
-from requests import Session, Response
+from requests import Response, Session
 
-# Local Imports
 from omnitils.fetch import (
-    request_header_default,
-    get_new_session,
     chunk_size_default,
     download_file_from_response,
+    get_new_session,
+    request_header_default,
 )
-from omnitils.files import mkdir_full_perms, get_temporary_file, dump_data_file
+from omnitils.files import dump_data_file, get_temporary_file, mkdir_full_perms
 from omnitils.strings import decode_url
+
+_logger = getLogger(__name__)
 
 """
 * Enums
@@ -92,11 +92,11 @@ def gdrive_get_confirmation_url(contents: str) -> yarl.URL:
 
 
 def gdrive_process_url(
-    url: Union[str, yarl.URL],
-    sess: Optional[Session] = None,
+    url: str | yarl.URL,
+    sess: Session | None = None,
     headers: MutableMapping[str, str | bytes] | None = None,
-    path_cookies: Optional[Path] = None,
-) -> Optional[tuple[Session, Response]]:
+    path_cookies: Path | None = None,
+) -> tuple[Session, Response] | None:
     """Tests a Gdrive file URL to ensure it is the absolute download URL. If it isn't,
         attempt to redirect to the absolute URL based on Google Drive confirmation. Return a valid session and
         response object if successful, otherwise None.
@@ -132,11 +132,10 @@ def gdrive_process_url(
             headers=headers,
             path_cookies=path_cookies,
         )
-    except Exception as e:
-        logger.error(e)
+    except Exception:
+        _logger.exception(f"Google Drive denied access to the file at URL: {url}")
         res.close()
         sess.close()
-        return logger.error("Google Drive denied access to the file!")
 
 
 """
@@ -168,7 +167,7 @@ def gdrive_update_cookies(sess: Session, path_cookies: Path) -> None:
 
 def gdrive_get_metadata(
     file_id: str, api_key: str, header: MutableMapping[str, str | bytes] | None = None
-) -> Optional[GoogleDriveMetadata]:
+) -> GoogleDriveMetadata | None:
     """Get the metadata of a given template file.
 
     Args:
@@ -181,17 +180,19 @@ def gdrive_get_metadata(
     """
     if header is None:
         header = request_header_default.copy()
-    with suppress(Exception):
-        with requests.get(
+    with (
+        suppress(Exception),
+        requests.get(
             f"https://www.googleapis.com/drive/v3/files/{file_id}",
             headers=header,
             params={"alt": "json", "fields": "description,name,size", "key": api_key},
-        ) as req:
-            if not req.status_code == 200:
-                return
-            result = req.json()
-            if "name" in result and "size" in result:
-                return result
+        ) as req,
+    ):
+        if req.status_code != 200:
+            return
+        result = req.json()
+        if "name" in result and "size" in result:
+            return result
 
     # Request was unsuccessful
     return
@@ -203,14 +204,14 @@ def gdrive_get_metadata(
 
 
 def gdrive_download_file(
-    url: Union[yarl.URL, str],
+    url: yarl.URL | str,
     path: Path,
-    callback: Optional[Callable[[int, int], None]] = None,
+    callback: Callable[[int, int], None] | None = None,
     headers: MutableMapping[str, str | bytes] | None = None,
-    path_cookies: Optional[Path] = None,
+    path_cookies: Path | None = None,
     allow_resume: bool = True,
     chunk_size: int = chunk_size_default,
-) -> Optional[Path]:
+) -> Path | None:
     """Download a file from Google Drive using its file ID.
 
     Note:
@@ -236,34 +237,30 @@ def gdrive_download_file(
     # Add range header if file is partially downloaded
     headers = headers or request_header_default.copy()
     if size > 0:
-        headers["Range"] = f"bytes={str(size)}-"
+        headers["Range"] = f"bytes={size}-"
 
     # Attempt to create a session and request from URL
     check = gdrive_process_url(url=url, headers=headers, path_cookies=path_cookies)
     if not check:
-        return logger.error(f"Google Drive download failed!\n{path.name} | {url}")
+        # gdrive_process_url logs its own errors
+        return
     sess, res = check
 
     # Attempt to download the file
     try:
-        result = download_file_from_response(
+        _result = download_file_from_response(
             response=res, path=file, callback=callback, chunk_size=chunk_size
         )
-    except Exception as e:
+    except Exception:
         # Exception occurred
-        logger.error(e)
-        result = None
-    if result is None:
-        # Download failed
+        _logger.exception(f"Google Drive download failed:\n{path.name} | {url}")
+        return
+    finally:
         res.close()
         sess.close()
-        return logger.error(f"Google Drive download failed!\n{path.name} | {url}")
 
     # Rename temporary file
     if not (path.is_file() and os.path.samefile(file, path)):
         shutil.move(file, path)
 
-    # Close session and return
-    res.close()
-    sess.close()
     return path
